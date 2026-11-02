@@ -2,7 +2,7 @@ import "server-only"
 
 import { db } from "@/lib/db"
 import { escapeLike, mapImage, type RawImage } from "@/lib/data/mappers"
-import { getProductImageUrl } from "@/lib/images"
+import { getProductImageUrl } from "@/lib/r2"
 import type { CategoryRow, ProductImage, ProductRow } from "@/types/catalog"
 
 /**

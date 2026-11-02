@@ -2,8 +2,7 @@
  * Aplica as migrations de db/migrations/*.sql em ordem alfabética, uma única vez cada.
  * Cada arquivo roda em uma transação; os já aplicados ficam em public.schema_migrations.
  *
- *   npm run db:migrate          → DATABASE_URL do .env.local
- *   npm run db:migrate:prod     → DATABASE_URL do .env.vercel.local
+ *   npm run db:migrate          → DATABASE_URL do .env
  */
 import { readdir, readFile } from "node:fs/promises"
 import { join } from "node:path"

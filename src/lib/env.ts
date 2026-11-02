@@ -49,10 +49,17 @@ export function requireDatabaseEnv() {
   return env
 }
 
-/** URL pública do bucket de imagens no R2 (domínio próprio ou r2.dev). null se ausente ou inválida. */
+/** Endereço da API S3 do R2: exige assinatura, então nunca serve como URL pública das imagens. */
+export const isR2ApiUrl = (url: string) => /^https?:\/\/[^/]+\.r2\.cloudflarestorage\.com(\/|$)/i.test(url)
+
+/**
+ * URL pública do bucket de imagens no R2 (domínio próprio ou r2.dev). null se ausente, inválida ou se for
+ * o endereço da API (aí as imagens seguem com URL assinada).
+ */
 export function getImagesBaseUrl() {
   const parsed = urlSchema.safeParse(process.env.NEXT_PUBLIC_IMAGES_BASE_URL ?? "")
-  return parsed.success ? parsed.data.replace(/\/+$/, "") : null
+  if (!parsed.success || isR2ApiUrl(parsed.data)) return null
+  return parsed.data.replace(/\/+$/, "")
 }
 
 export function getSiteUrl() {

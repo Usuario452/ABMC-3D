@@ -97,5 +97,8 @@ describe("variáveis de ambiente", () => {
     expect(getImagesBaseUrl()).toBe("https://img.exemplo.com")
     vi.stubEnv("NEXT_PUBLIC_IMAGES_BASE_URL", "")
     expect(getImagesBaseUrl()).toBeNull()
+    // Endereço da API do R2 não é público: ignorado, para as imagens seguirem com URL assinada.
+    vi.stubEnv("NEXT_PUBLIC_IMAGES_BASE_URL", "https://conta123.r2.cloudflarestorage.com")
+    expect(getImagesBaseUrl()).toBeNull()
   })
 })

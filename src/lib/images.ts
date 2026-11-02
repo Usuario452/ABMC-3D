@@ -1,5 +1,3 @@
-import { getImagesBaseUrl } from "@/lib/env"
-
 /** Tamanho máximo aceito pelo servidor por arquivo, antes da conversão para WebP. */
 export const MAX_IMAGE_BYTES = 4 * 1024 * 1024
 export const MAX_IMAGES_PER_PRODUCT = 10
@@ -41,16 +39,13 @@ export function isValidStoragePath(path: string, productId: string) {
   return STORAGE_PATH_PATTERN.test(path) && path.startsWith(`products/${productId}/`)
 }
 
+/** Caminho de imagem de produto em qualquer produto (usado pela rota pública /img). */
+export function isProductImagePath(path: string) {
+  return STORAGE_PATH_PATTERN.test(path)
+}
+
 /** Caminho seguro, gerado no servidor: products/<produto>/<timestamp>-<aleatório>.<ext> */
 export function buildStoragePath(productId: string, type: AllowedImageType, random: string, now = Date.now()) {
   const safeRandom = random.replace(/[^a-z0-9]/gi, "").slice(0, 12).toLowerCase()
   return `products/${productId}/${now}-${safeRandom}.${ALLOWED_IMAGE_TYPES[type]}`
-}
-
-/** URL pública do arquivo no R2. Retorna null se NEXT_PUBLIC_IMAGES_BASE_URL não estiver configurada. */
-export function getProductImageUrl(storagePath: string) {
-  const baseUrl = getImagesBaseUrl()
-  if (!baseUrl) return null
-  const encoded = storagePath.split("/").map(encodeURIComponent).join("/")
-  return `${baseUrl}/${encoded}`
 }

@@ -33,7 +33,10 @@ export async function generateMetadata({ params }: PageProps<"/produtos/[slug]">
     openGraph: {
       title: product.name,
       description,
-      images: product.image?.url ? [{ url: product.image.url, alt: product.image.altText || product.name }] : undefined,
+      // Endereço fixo (/img): a prévia guardada pelo WhatsApp e redes sociais não pode expirar como a URL assinada.
+      images: product.image?.url
+        ? [{ url: `/img/${product.image.storagePath}`, alt: product.image.altText || product.name }]
+        : undefined,
     },
   }
 }

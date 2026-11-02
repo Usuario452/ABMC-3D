@@ -3,8 +3,7 @@
  * A senha é digitada no terminal (sem eco) e só o hash scrypt vai para o banco.
  * Redefinir a senha encerra todas as sessões abertas desse administrador.
  *
- *   npm run db:create-admin          → banco do .env.local
- *   npm run db:create-admin:prod     → banco do .env.vercel.local
+ *   npm run db:create-admin          → banco do .env
  */
 import { stdin, stdout } from "node:process"
 import { createInterface } from "node:readline/promises"

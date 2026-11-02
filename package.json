@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "preview": "next build && next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
@@ -14,11 +15,9 @@
     "check": "npm run typecheck && npm run lint && npm run test && npm run build",
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down",
-    "db:migrate": "node --env-file-if-exists=.env.local scripts/db-migrate.mts",
-    "db:migrate:prod": "node --env-file=.env.vercel.local scripts/db-migrate.mts",
-    "db:seed:dev": "node --env-file-if-exists=.env.local scripts/db-seed-dev.mts",
-    "db:create-admin": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.local scripts/create-admin.mts",
-    "db:create-admin:prod": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.vercel.local scripts/create-admin.mts"
+    "db:migrate": "node --env-file-if-exists=.env scripts/db-migrate.mts",
+    "db:seed:dev": "node --env-file-if-exists=.env scripts/db-seed-dev.mts",
+    "db:create-admin": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env scripts/create-admin.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.2",

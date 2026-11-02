@@ -1,10 +1,19 @@
 import type { NextConfig } from "next"
 import type { RemotePattern } from "next/dist/shared/lib/image-config"
 
-/** Origem permitida para next/image: o bucket público do R2 (NEXT_PUBLIC_IMAGES_BASE_URL). */
+/**
+ * Origem permitida para next/image. Com NEXT_PUBLIC_IMAGES_BASE_URL, o domínio público do bucket; sem ela,
+ * o endereço S3 do R2 com URLs assinadas (a assinatura vai na query, por isso `search` fica livre).
+ */
 function imageRemotePatterns(): RemotePattern[] {
-  const raw = process.env.NEXT_PUBLIC_IMAGES_BASE_URL
-  if (!raw) return []
+  const raw = process.env.NEXT_PUBLIC_IMAGES_BASE_URL?.trim()
+  // O endereço da API S3 do R2 não é público: nesse caso as imagens também usam URL assinada.
+  if (!raw || /\.r2\.cloudflarestorage\.com(\/|$)/i.test(raw)) {
+    const account = process.env.R2_ACCOUNT_ID?.trim()
+    const bucket = process.env.R2_BUCKET?.trim()
+    if (!account || !bucket) return []
+    return [{ protocol: "https", hostname: `${account}.r2.cloudflarestorage.com`, pathname: `/${bucket}/products/**` }]
+  }
   try {
     const url = new URL(raw)
     return [

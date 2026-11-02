@@ -80,6 +80,7 @@ npm run dev
 - `db:migrate` aplica `db/migrations/*.sql` em ordem; cada arquivo roda uma única vez (registro em `schema_migrations`).
 - `db:seed:dev` cria o administrador de desenvolvimento. O e-mail e a senha estão em `db/seed/dev.sql`. O script recusa qualquer banco que não seja local.
 - Loja em `http://localhost:3000`; painel em `http://localhost:3000/admin`.
+- `npm run preview` gera o build de produção e o serve com `next start`, para testar localmente exatamente como roda em produção.
 
 ---
 
@@ -87,16 +88,16 @@ npm run dev
 
 O app usa **somente a conexão PostgreSQL** (`DATABASE_URL`). Nenhum recurso específico de provedor é usado: trocar de provedor é mudar a URL e rodar as migrations.
 
-1. Crie o banco no provedor e copie a connection string. Na Vercel (serverless), use a URL do **pooler em modo transaction**. No Supabase: **Connect → Transaction pooler** (porta `6543`).
-2. Cole em `.env.vercel.local` (ignorado pelo Git) como `DATABASE_URL=...`.
+1. Crie o banco no provedor e copie a connection string. Em hospedagem serverless (Vercel), use a URL do **pooler em modo transaction**. No Supabase: **Connect → Transaction pooler** (porta `6543`).
+2. Cole no `.env` como `DATABASE_URL=...`.
 3. Aplique as migrations e crie o administrador. A senha é digitada no terminal, sem eco, e só o hash vai para o banco:
 
 ```bash
-npm run db:migrate:prod
+npm run db:migrate
 ```
 
 ```bash
-npm run db:create-admin:prod
+npm run db:create-admin
 ```
 
 Rodar `db:create-admin` de novo com o mesmo e-mail redefine a senha e encerra as sessões abertas.
@@ -107,10 +108,14 @@ Rodar `db:create-admin` de novo com o mesmo e-mail redefine a senha e encerra as
 
 As imagens dos produtos ficam no **Cloudflare R2** (sem cobrança de tráfego de saída); o banco guarda apenas o caminho de cada arquivo.
 
-1. Cloudflare → **R2 Object Storage** → crie o bucket (ex.: `kubostudio-images`).
-2. Em **Settings** do bucket, ative o acesso público: **Custom Domain** em produção (passa pelo cache da Cloudflare) ou **Public Development URL** (`r2.dev`, limitada, só para testes).
-3. **R2 → Manage API tokens** → crie um token **Object Read & Write** restrito ao bucket.
-4. Preencha `NEXT_PUBLIC_IMAGES_BASE_URL`, `R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID` e `R2_SECRET_ACCESS_KEY`. As chaves `R2_*` ficam só no servidor.
+1. Cloudflare → **R2 Object Storage** → crie o bucket (ex.: `kubostudio-images`). Ele pode ficar **privado**.
+2. **R2 → Manage API tokens** → crie um token **Object Read & Write** restrito ao bucket.
+3. Preencha `R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID` e `R2_SECRET_ACCESS_KEY`. As chaves `R2_*` ficam só no servidor. Use o mesmo bucket em todos os ambientes que compartilham o banco.
+
+**Como as imagens são exibidas:**
+
+- **Bucket privado (padrão, `NEXT_PUBLIC_IMAGES_BASE_URL` vazia):** o servidor gera URLs assinadas (Signature V4) válidas por 7 dias, sempre com a data do início do dia, para o endereço não mudar ao longo do dia e os caches continuarem valendo. Como as páginas em cache duram no máximo 1 dia, o link entregue nunca está vencido. A prévia ao compartilhar um produto (Open Graph) usa a rota `/img/products/...`, de endereço fixo, que lê o arquivo do bucket pelo servidor.
+- **Bucket público (quando escalar):** ative um **Custom Domain** no bucket (passa pelo cache da Cloudflare) e preencha `NEXT_PUBLIC_IMAGES_BASE_URL` com ele. As imagens passam a usar esse endereço fixo, sem nenhuma mudança de código. O `r2.dev` também funciona, mas é limitado e serve só para testes.
 
 Não é preciso configurar CORS: o upload passa pelo servidor (Server Action) e a exibição usa `<img>`/`next/image`.
 
@@ -120,19 +125,19 @@ No envio, o servidor converte qualquer JPEG/PNG/WebP para **WebP qualidade 82** 
 
 ## Variáveis de ambiente
 
-Copie `.env.example` para `.env.local` e preencha:
+Copie `.env.example` para `.env` e preencha:
 
 | Variável | Obrigatória | Descrição |
 |---|---|---|
 | `DATABASE_URL` | Sim | Conexão PostgreSQL. **Secreta**, somente no servidor |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Sim, para finalizar pedidos | Somente números, com DDI 55 + DDD + número. Ex.: `5511999999999` |
 | `NEXT_PUBLIC_SITE_URL` | Recomendada em produção | URL pública do site (SEO, sitemap, Open Graph) |
-| `NEXT_PUBLIC_IMAGES_BASE_URL` | Sim, para exibir imagens | URL pública do bucket R2 |
-| `R2_ACCOUNT_ID`, `R2_BUCKET` | Sim, para enviar imagens | Conta e bucket do R2 |
-| `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | Sim, para enviar imagens | Token do R2. **Secretas**, somente no servidor |
+| `R2_ACCOUNT_ID`, `R2_BUCKET` | Sim, para imagens | Conta e bucket do R2 |
+| `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | Sim, para imagens | Token do R2 (envia e assina as URLs). **Secretas**, somente no servidor |
+| `NEXT_PUBLIC_IMAGES_BASE_URL` | Não | Domínio público do bucket. Vazia = bucket privado com URLs assinadas |
 
 - Variáveis `NEXT_PUBLIC_*` vão para o navegador e não podem conter segredos. `DATABASE_URL` e `R2_*` nunca levam esse prefixo.
-- `.env.local` é o ambiente de desenvolvimento; `.env.vercel.local` guarda os valores de produção usados pelos comandos `*:prod` e a lista para cadastrar na Vercel. Os dois são ignorados pelo Git.
+- Um único `.env` (ignorado pelo Git) serve para desenvolvimento, `npm run preview` e os comandos `db:*`; o Next o lê tanto em `next dev` quanto em `next start`. Numa VPS, basta copiar o mesmo arquivo. Na Vercel, cadastre as mesmas variáveis no painel do projeto (Settings → Environment Variables).
 - Variáveis `NEXT_PUBLIC_*` são incorporadas no **build**: após alterá-las, gere o build novamente ou reinicie `npm run dev`.
 - Sem `DATABASE_URL`, as páginas exibem um aviso de **configuração pendente** (sem revelar valores).
 
@@ -155,20 +160,19 @@ Abre em `http://localhost:3000` (loja) e `http://localhost:3000/admin` (painel).
 | `npm run dev` | Servidor de desenvolvimento |
 | `npm run build` | Build de produção |
 | `npm run start` | Servidor de produção (após o build) |
+| `npm run preview` | Build de produção + `next start`, para testar localmente como em produção |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | Gera os tipos de rotas e roda `tsc --noEmit` |
 | `npm run test` | Testes automatizados (Vitest) |
 | `npm run check` | typecheck + lint + test + build |
 | `npm run db:up` / `db:down` | Sobe / para o PostgreSQL local (Docker) |
-| `npm run db:migrate` | Aplica as migrations no banco do `.env.local` |
+| `npm run db:migrate` | Aplica as migrations no banco do `.env` |
 | `npm run db:seed:dev` | Cria o administrador de desenvolvimento (só em banco local) |
-| `npm run db:create-admin` | Cria administrador ou redefine senha (banco do `.env.local`) |
-| `npm run db:migrate:prod` | Aplica as migrations no banco do `.env.vercel.local` |
-| `npm run db:create-admin:prod` | Cria administrador ou redefine senha em produção |
+| `npm run db:create-admin` | Cria administrador ou redefine senha (banco do `.env`) |
 
 ### Testando de ponta a ponta
 
-1. Siga "Ambiente local" (banco, migrations e administrador de desenvolvimento) e preencha o R2 no `.env.local`.
+1. Siga "Ambiente local" (banco, migrations e administrador de desenvolvimento) e preencha o R2 no `.env`.
 2. `npm run dev` e acesse `/admin/login`.
 3. Crie uma categoria, depois um produto; na tela do produto, envie imagens e defina a principal.
 4. Abra a loja, adicione o produto ao carrinho, recarregue a página (o carrinho deve persistir) e clique em **Finalizar pelo WhatsApp**.
@@ -225,7 +229,7 @@ Os termos dos planos gratuitos mudam com frequência — **confirme as condiçõ
 
 **PostgreSQL**
 
-- Qualquer provedor serve. No **Supabase (Free)**: 500 MB de banco, mas **o projeto é pausado após cerca de 7 dias sem acesso** e precisa ser reativado no painel. No **Neon (Free)**: o banco "dorme" sem uso e acorda sozinho na próxima consulta. Para migrar entre eles: `pg_dump` do banco atual, troca da `DATABASE_URL` e `npm run db:migrate:prod`.
+- Qualquer provedor serve. No **Supabase (Free)**: 500 MB de banco, mas **o projeto é pausado após cerca de 7 dias sem acesso** e precisa ser reativado no painel. No **Neon (Free)**: o banco "dorme" sem uso e acorda sozinho na próxima consulta. Para migrar entre eles: `pg_dump` do banco atual, troca da `DATABASE_URL` e `npm run db:migrate`.
 
 **Cloudflare R2**
 

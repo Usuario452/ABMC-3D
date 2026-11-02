@@ -1,4 +1,4 @@
-import { getProductImageUrl } from "@/lib/images"
+import { getProductImageUrl } from "@/lib/r2"
 import type { ProductImage } from "@/types/catalog"
 
 export type RawImage = { id: string; storage_path: string; alt_text: string; position: number }
