@@ -1,0 +1,139 @@
+"use server"
+
+import { authorizeAdminAction } from "@/lib/auth/admin"
+import { describeDbError, failure, success, validationFailure, type ActionResult } from "@/lib/actions/result"
+import { catalogChanged } from "@/lib/actions/revalidate"
+import { pgErrorCode } from "@/lib/db"
+import { deleteObjects } from "@/lib/r2"
+import { productSchema, uuidSchema, type ProductData, type ProductInput } from "@/lib/validation/schemas"
+
+const DUPLICATE_SLUG = "Já existe um produto com este slug. Escolha outro."
+
+function toRow(data: ProductData) {
+  return {
+    name: data.name,
+    slug: data.slug,
+    description: data.description,
+    price_cents: data.price,
+    category_id: data.categoryId,
+    is_active: data.isActive,
+    is_available: data.isAvailable,
+    is_featured: data.isFeatured,
+  }
+}
+
+function writeFailure(error: unknown) {
+  const code = pgErrorCode(error)
+  if (code === "23503") {
+    return failure("A categoria selecionada não existe mais.", {
+      fieldErrors: { categoryId: ["Selecione uma categoria válida."] },
+    })
+  }
+  return failure(describeDbError({ code }, { duplicate: DUPLICATE_SLUG }), {
+    fieldErrors: code === "23505" ? { slug: [DUPLICATE_SLUG] } : undefined,
+  })
+}
+
+export async function createProduct(input: ProductInput): Promise<ActionResult<{ id: string }>> {
+  const auth = await authorizeAdminAction()
+  if (!auth.ok) return auth
+
+  const parsed = productSchema.safeParse(input)
+  if (!parsed.success) return validationFailure(parsed.error)
+
+  try {
+    const [row] = await auth.sql<{ id: string }[]>`insert into products ${auth.sql(toRow(parsed.data))} returning id`
+    catalogChanged()
+    return success({ id: row.id }, "Produto criado.")
+  } catch (error) {
+    return writeFailure(error)
+  }
+}
+
+export async function updateProduct(id: string, input: ProductInput): Promise<ActionResult> {
+  const auth = await authorizeAdminAction()
+  if (!auth.ok) return auth
+
+  const parsedId = uuidSchema.safeParse(id)
+  if (!parsedId.success) return failure("Produto inválido.")
+  const parsed = productSchema.safeParse(input)
+  if (!parsed.success) return validationFailure(parsed.error)
+
+  try {
+    const rows = await auth.sql`
+      update products set ${auth.sql(toRow(parsed.data))} where id = ${parsedId.data} returning id
+    `
+    if (rows.length === 0) return failure("Produto não encontrado.")
+  } catch (error) {
+    return writeFailure(error)
+  }
+
+  catalogChanged()
+  return success(null, "Produto atualizado.")
+}
+
+type ProductFlag = "is_active" | "is_available" | "is_featured"
+
+const FLAG_MESSAGES: Record<ProductFlag, [string, string]> = {
+  is_active: ["Produto ativado.", "Produto desativado."],
+  is_available: ["Produto marcado como disponível.", "Produto marcado como indisponível."],
+  is_featured: ["Produto adicionado aos destaques.", "Produto removido dos destaques."],
+}
+
+export async function setProductFlag(id: string, flag: ProductFlag, value: boolean): Promise<ActionResult> {
+  const auth = await authorizeAdminAction()
+  if (!auth.ok) return auth
+
+  const parsedId = uuidSchema.safeParse(id)
+  if (!parsedId.success || !Object.hasOwn(FLAG_MESSAGES, flag) || typeof value !== "boolean") {
+    return failure("Dados inválidos.")
+  }
+
+  try {
+    // A coluna vem de FLAG_MESSAGES (validada acima), nunca do texto enviado.
+    const rows = await auth.sql`
+      update products set ${auth.sql({ [flag]: value })} where id = ${parsedId.data} returning id
+    `
+    if (rows.length === 0) return failure("Produto não encontrado.")
+  } catch (error) {
+    return failure(describeDbError({ code: pgErrorCode(error) }))
+  }
+
+  catalogChanged()
+  return success(null, FLAG_MESSAGES[flag][value ? 0 : 1])
+}
+
+export async function deleteProduct(id: string): Promise<ActionResult> {
+  const auth = await authorizeAdminAction()
+  if (!auth.ok) return auth
+
+  const parsedId = uuidSchema.safeParse(id)
+  if (!parsedId.success) return failure("Produto inválido.")
+
+  let paths: string[] | null
+  try {
+    // Exclui primeiro o registro (as imagens saem em cascata) e só depois os arquivos:
+    // uma falha no R2 deixa no máximo um arquivo órfão, nunca um registro quebrado.
+    paths = await auth.sql.begin(async (tx) => {
+      const images = await tx<{ storage_path: string }[]>`
+        select storage_path from product_images where product_id = ${parsedId.data}
+      `
+      const deleted = await tx`delete from products where id = ${parsedId.data} returning id`
+      return deleted.length === 0 ? null : images.map((image) => image.storage_path)
+    })
+  } catch (error) {
+    return failure(describeDbError({ code: pgErrorCode(error) }))
+  }
+  if (paths === null) return failure("Produto não encontrado.")
+
+  catalogChanged()
+
+  // storage_path é único: os arquivos pertencem só às imagens deste produto.
+  const removal = await deleteObjects(paths)
+  if (!removal.ok) {
+    console.error("[products] remoção R2:", removal.error)
+    return success(null, "Produto excluído, mas alguns arquivos de imagem não puderam ser removidos do armazenamento.")
+  }
+
+  return success(null, "Produto excluído.")
+}
