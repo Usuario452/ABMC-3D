@@ -9,13 +9,11 @@ import { HiOutlineArrowPath, HiOutlinePhoto, HiOutlineTag, HiOutlineTrash } from
 import { createCategory, removeCategoryCover, updateCategory, uploadCategoryCover } from "@/actions/categories"
 import { networkErrorToast, useActionFeedback } from "@/components/admin/action-feedback"
 import { Button } from "@/components/ui/button"
+import { ModalHeader } from "@/components/admin/modal-header"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
@@ -51,11 +49,13 @@ export function CategoryFormDialog({ trigger, category, open: controlledOpen, on
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
-        <DialogHeader className="gap-0.5 border-b border-border/60 px-5 py-4 pr-12">
-          <DialogTitle className="text-base">{category ? "Editar categoria" : "Nova categoria"}</DialogTitle>
-          <DialogDescription className="text-xs">Categorias inativas e seus produtos ficam ocultos na loja.</DialogDescription>
-        </DialogHeader>
+      <DialogContent showCloseButton={false} className="gap-0 overflow-hidden p-0 sm:max-w-md">
+        <ModalHeader
+          icon={HiOutlineTag}
+          title={category ? "Editar categoria" : "Nova categoria"}
+          description="Inativa, some da loja com seus produtos."
+          onClose={() => setOpen(false)}
+        />
         {open ? (
           <CategoryForm
             category={category}

@@ -28,8 +28,13 @@ import {
   HiOutlineSquares2X2,
   HiOutlineTag,
   HiOutlineWrenchScrewdriver,
+  HiOutlineCalculator,
+  HiOutlineCheck,
 } from "react-icons/hi2";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { ModalHeader } from "@/components/admin/modal-header";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -271,16 +276,59 @@ const subscribeNothing = () => () => {};
  * Calculadora de preço de peças impressas em 3D. Monta só no navegador (os valores da oficina vêm do
  * localStorage); no servidor e na hidratação, mostra o esqueleto.
  */
-export function PriceCalculator() {
+export function PriceCalculator({ onUse }: CalculatorProps = {}) {
   const mounted = useSyncExternalStore(
     subscribeNothing,
     () => true,
     () => false,
   );
-  return mounted ? <Calculator /> : <CalculatorSkeleton />;
+  return mounted ? <Calculator onUse={onUse} /> : <CalculatorSkeleton />;
 }
 
-function Calculator() {
+type CalculatorProps = {
+  /**
+   * Usado no modal do produto: o resultado fica só com preço e números-chave, e um botão devolve o
+   * preço por peça (em centavos) para o formulário.
+   */
+  onUse?: (priceCents: number) => void;
+};
+
+/** A mesma calculadora num modal largo, para preencher o preço do produto. */
+export function PriceCalculatorDialog({
+  open,
+  onOpenChange,
+  onUse,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUse: (priceCents: number) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="flex max-h-[calc(100dvh-2rem)] w-[85vw] max-w-[85vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-[85vw]"
+      >
+        <ModalHeader
+          icon={HiOutlineCalculator}
+          title="Calcular preço"
+          description="Custo real da peça mais a margem; use o resultado como preço do produto."
+          onClose={() => onOpenChange(false)}
+        />
+        <div className="min-h-0 flex-1 overflow-y-auto bg-background/60 p-5">
+          <PriceCalculator
+            onUse={(priceCents) => {
+              onUse(priceCents);
+              onOpenChange(false);
+            }}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Calculator({ onUse }: CalculatorProps) {
   const [values, setValues] = useState<Values>(() => ({
     ...DEFAULTS,
     ...readSaved(),
@@ -398,7 +446,14 @@ function Calculator() {
   };
 
   return (
-    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
+    <div
+      className={cn(
+        "grid items-start gap-5",
+        onUse
+          ? "lg:grid-cols-[minmax(0,1fr)_340px]"
+          : "lg:grid-cols-[minmax(0,1fr)_400px]",
+      )}
+    >
       {/* Um card só com todos os dados; grupos separados por rótulos discretos. */}
       <div className="rounded-lg bg-card shadow-panel">
         <div className="border-b border-border/60 px-5 py-3.5">
@@ -593,7 +648,22 @@ function Calculator() {
               value={weightGrams > 0 ? `${brl.format(result.unitPrice / weightGrams)}/g` : "—"}
             />
           </dl>
+          {onUse ? (
+            <Button
+              type="button"
+              className="mt-4 w-full"
+              disabled={!(result.unitPrice > 0)}
+              onClick={() => onUse(Math.round(result.unitPrice * 100))}
+            >
+              <HiOutlineCheck aria-hidden />
+              Usar este preço
+            </Button>
+          ) : null}
         </section>
+
+        {/* No modal do produto o resultado fica simples: sem composição nem produção. */}
+        {onUse ? null : (
+          <>
 
         {/* Composição do preço: cada parte do custo mais o lucro, numa barra só. */}
         <section className="rounded-lg bg-card p-5 shadow-panel">
@@ -688,6 +758,8 @@ function Calculator() {
             ))}
           </ul>
         </section>
+          </>
+        )}
       </aside>
     </div>
   );

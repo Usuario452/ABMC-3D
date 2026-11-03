@@ -2,7 +2,8 @@
 
 import Image from "next/image"
 import { type ReactNode, useState, useTransition } from "react"
-import { HiMagnifyingGlass, HiOutlineEyeSlash, HiOutlinePencilSquare, HiOutlineTag, HiOutlineTrash } from "react-icons/hi2"
+import { MdEdit } from "react-icons/md"
+import { HiMagnifyingGlass, HiOutlineEyeSlash, HiOutlineTag, HiOutlineTrash } from "react-icons/hi2"
 import { deleteCategory, setCategoryActive } from "@/actions/categories"
 import { networkErrorToast, useActionFeedback } from "@/components/admin/action-feedback"
 import { CategoryFormDialog } from "@/components/admin/category-form-dialog"
@@ -136,7 +137,7 @@ function CategoryRow({ category }: { category: AdminCategory }) {
             category={category}
             trigger={
               <Button variant="ghost" size="icon" className="size-8" aria-label={`Editar ${category.name}`}>
-                <HiOutlinePencilSquare className="size-4" aria-hidden />
+                <MdEdit className="size-4" aria-hidden />
               </Button>
             }
           />

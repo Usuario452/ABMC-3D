@@ -12,6 +12,7 @@ import {
   HiExclamationTriangle,
   HiNoSymbol,
   HiOutlineArrowUpTray,
+  HiOutlineCalculator,
   HiOutlineCube,
   HiOutlineLink,
   HiOutlineLockClosed,
@@ -23,7 +24,6 @@ import {
   HiOutlineTag,
   HiStar,
   HiOutlineTrash,
-  HiXMark,
 } from "react-icons/hi2"
 import type { IconType } from "react-icons"
 import { toast } from "sonner"
@@ -33,7 +33,9 @@ import { createProduct, deleteProduct, updateProduct } from "@/actions/products"
 import { networkErrorToast, useActionFeedback } from "@/components/admin/action-feedback"
 import { CategoryFormDialog } from "@/components/admin/category-form-dialog"
 import { ConfirmDelete } from "@/components/admin/confirm-delete"
+import { PriceCalculatorDialog } from "@/components/admin/price-calculator"
 import { LinkTextarea } from "@/components/admin/link-textarea"
+import { ModalHeader } from "@/components/admin/modal-header"
 import { MarkdownEditor } from "@/components/admin/markdown-editor"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
@@ -90,6 +92,8 @@ export function ProductDialog({
   // Categorias do seletor; "Nova" acrescenta a criada no modal de categoria e já a seleciona.
   const [categoryList, setCategoryList] = useState(categories)
   const [creatingCategory, setCreatingCategory] = useState(false)
+  // Calculadora de preço num modal; o resultado preenche o campo de preço.
+  const [calculating, setCalculating] = useState(false)
   const [categoryOpen, setCategoryOpen] = useState(false)
   const [photos, setPhotos] = useState<Photo[]>(() =>
     (product?.images ?? []).map((image) => ({ key: image.id, url: image.url, saved: image })),
@@ -327,30 +331,23 @@ export function ProductDialog({
           if (busy) event.preventDefault()
         }}
       >
-        <header className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <HiOutlineCube className="size-6 shrink-0 text-gold" aria-hidden />
-            <div className="min-w-0">
-              <DialogTitle className="truncate text-base font-semibold">{product ? "Editar produto" : "Novo produto"}</DialogTitle>
-              <DialogDescription className="mt-0.5 text-xs">
-                {product ? "Edite os dados, as fotos e a visibilidade." : "Preencha os dados e adicione as fotos do produto."}
-              </DialogDescription>
-            </div>
-          </div>
-          <div className="flex shrink-0 items-center gap-1">
-            {isPublic && product ? (
+        <ModalHeader
+          icon={HiOutlineCube}
+          title={product ? "Editar produto" : "Novo produto"}
+          description={product ? "Edite os dados, as fotos e a visibilidade." : "Preencha os dados e adicione as fotos do produto."}
+          onClose={close}
+          closeDisabled={busy}
+          actions={
+            isPublic && product ? (
               <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
                 <Link href={`/produtos/${product.slug}`} target="_blank">
                   <HiArrowTopRightOnSquare aria-hidden />
                   Ver na loja
                 </Link>
               </Button>
-            ) : null}
-            <Button type="button" variant="ghost" size="icon-sm" onClick={close} disabled={busy} aria-label="Fechar">
-              <HiXMark aria-hidden />
-            </Button>
-          </div>
-        </header>
+            ) : null
+          }
+        />
 
         <form id="product-form" method="post" onSubmit={onSubmit} noValidate className="min-h-0 flex-1 overflow-y-auto">
           <div className="grid gap-6 p-5 md:grid-cols-[260px_minmax(0,1fr)]">
@@ -384,7 +381,18 @@ export function ProductDialog({
               </Field>
 
               <Field data-invalid={Boolean(errors.price)}>
-                <FieldLabel htmlFor="product-price">Preço <span className="text-destructive" aria-hidden>*</span></FieldLabel>
+                <div className="flex items-center justify-between gap-2">
+                  <FieldLabel htmlFor="product-price">Preço <span className="text-destructive" aria-hidden>*</span></FieldLabel>
+                  <button
+                    type="button"
+                    onClick={() => setCalculating(true)}
+                    disabled={busy}
+                    className="inline-flex items-center gap-1 rounded-md text-xs font-medium text-gold transition-colors outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                  >
+                    <HiOutlineCalculator className="size-3.5" aria-hidden />
+                    Calcular
+                  </button>
+                </div>
                 <div className="relative">
                   <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
                     R$
@@ -525,6 +533,13 @@ export function ProductDialog({
         </form>
 
         {/* Fora do <form>: o envio do formulário de categoria não pode subir até o do produto. */}
+        <PriceCalculatorDialog
+          open={calculating}
+          onOpenChange={setCalculating}
+          onUse={(priceCents) =>
+            form.setValue("price", centsToInputValue(priceCents), { shouldDirty: true, shouldValidate: true })
+          }
+        />
         <CategoryFormDialog
           open={creatingCategory}
           onOpenChange={setCreatingCategory}
