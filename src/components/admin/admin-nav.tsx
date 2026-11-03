@@ -12,7 +12,9 @@ import {
   HiCube,
   HiGlobeAlt,
   HiHome,
+  HiCalculator,
   HiChartBar,
+  HiOutlineCalculator,
   HiOutlineChartBar,
   HiTag,
   HiOutlineChevronRight,
@@ -52,6 +54,7 @@ const MENU: NavItem[] = [
   { href: "/admin/analytics", label: "Analytics", icon: HiOutlineChartBar, activeIcon: HiChartBar },
   { href: "/admin/produtos", label: "Produtos", icon: HiOutlineCube, activeIcon: HiCube },
   { href: "/admin/categorias", label: "Categorias", icon: HiOutlineTag, activeIcon: HiTag },
+  { href: "/admin/calculadora", label: "Calculadora", icon: HiOutlineCalculator, activeIcon: HiCalculator },
 ]
 
 const STORE: NavItem[] = [
