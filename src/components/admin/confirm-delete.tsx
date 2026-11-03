@@ -72,7 +72,7 @@ export function ConfirmAction({
         </div>
         <DialogDescription className="mt-3 text-[13px] leading-relaxed text-pretty">{description}</DialogDescription>
 
-        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <div className="mt-5 flex gap-2 *:flex-1 sm:justify-end sm:*:flex-none">
           <DialogClose asChild>
             <Button type="button" variant="ghost" disabled={isPending}>
               {confirmDisabled ? "Entendi" : "Cancelar"}

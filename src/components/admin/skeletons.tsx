@@ -35,13 +35,13 @@ const PeriodSkeleton = () => <Skeleton className="h-9 w-56 rounded-md" />
 
 function KpiSkeleton() {
   return (
-    <div className="rounded-lg bg-card p-4 shadow-panel">
-      <div className="flex items-center justify-between gap-2">
+    <div className="rounded-lg bg-card px-3.5 py-3 shadow-panel sm:px-4">
+      <div className="flex items-center gap-1.5">
+        <Skeleton className="size-4 rounded-sm" />
         <Skeleton className="h-3 w-20" />
-        <Skeleton className="size-8 rounded-lg" />
       </div>
-      <Skeleton className="mt-3 h-7 w-24" />
-      <Skeleton className="mt-2 h-3 w-28" />
+      <Skeleton className="mt-2 h-6 w-24 sm:h-7" />
+      <Skeleton className="mt-1.5 h-2.5 w-28" />
     </div>
   )
 }

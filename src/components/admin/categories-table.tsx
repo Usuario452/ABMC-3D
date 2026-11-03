@@ -29,7 +29,7 @@ export function CategoriesTable({ categories, footer }: { categories: AdminCateg
         <TableHeader className="[&_tr]:border-border/60">
           <TableRow className="hover:bg-transparent">
             <TableHead className={HEAD}>Categoria</TableHead>
-            <TableHead className={`${HEAD} text-center`}>Produtos</TableHead>
+            <TableHead className={`${HEAD} hidden text-center sm:table-cell`}>Produtos</TableHead>
             <TableHead className={`${HEAD} text-center`}>Ativa</TableHead>
             <TableHead className={`${HEAD} w-0`}>
               <span className="sr-only">Ações</span>
@@ -99,11 +99,17 @@ function CategoryRow({ category }: { category: AdminCategory }) {
                 <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">Inativa</span>
               ) : null}
             </p>
-            <p className="truncate text-xs text-muted-foreground">?categoria={category.slug}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {/* No celular a contagem vem aqui, no lugar da coluna "Produtos". */}
+              <span className="sm:hidden">
+                {category.productCount} {category.productCount === 1 ? "produto" : "produtos"}
+              </span>
+              <span className="hidden sm:inline">?categoria={category.slug}</span>
+            </p>
           </div>
         </div>
       </TableCell>
-      <TableCell className="px-3 text-center tabular-nums sm:px-4">{category.productCount}</TableCell>
+      <TableCell className="hidden px-3 text-center tabular-nums sm:table-cell sm:px-4">{category.productCount}</TableCell>
       <TableCell className="px-3 text-center sm:px-4">
         <Switch
           checked={category.is_active}
@@ -195,8 +201,8 @@ export function CategoriesView({ categories, action }: { categories: AdminCatego
         title="Categorias"
         description="Organize os produtos do catálogo."
         actions={
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
-            <div role="search" className="relative min-w-0 flex-1 basis-full sm:w-72 sm:flex-none sm:basis-auto">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <div role="search" className="relative min-w-0 flex-1 sm:w-72 sm:flex-none">
               <Label htmlFor="category-search" className="sr-only">
                 Buscar categoria
               </Label>

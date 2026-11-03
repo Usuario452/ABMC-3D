@@ -180,7 +180,8 @@ function CategoryForm({
           }}
         />
       </FieldGroup>
-      <DialogFooter className="mx-0 mb-0 border-border/60 bg-muted/30 px-5 py-3 sm:items-center sm:justify-between">
+      {/* No celular: "Ativa" numa linha e as ações lado a lado embaixo, como no modal de produto. */}
+      <DialogFooter className="mx-0 mb-0 flex-col gap-2.5 border-border/60 bg-muted/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         {/* Ativa fica no rodapé, junto das ações, como no cadastro de produto. */}
         <Controller
           control={form.control}
@@ -192,11 +193,11 @@ function CategoryForm({
             </label>
           )}
         />
-        <div className="flex flex-col-reverse gap-2 sm:flex-row">
-          <Button type="button" variant="outline" onClick={() => onDone()} disabled={isPending}>
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" onClick={() => onDone()} disabled={isPending} className="flex-1 sm:flex-none">
             Cancelar
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isPending} className="flex-1 sm:flex-none">
             {isPending ? "Salvando…" : category ? "Salvar alterações" : "Criar categoria"}
           </Button>
         </div>

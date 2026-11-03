@@ -33,6 +33,17 @@ export default async function AdminCategoriesPage() {
       }
     />
   )
+  // No cabeçalho, no celular, só o "+" ao lado da busca.
+  const headerButton = (
+    <CategoryFormDialog
+      trigger={
+        <Button className="max-sm:size-9 max-sm:px-0">
+          <HiOutlinePlus aria-hidden />
+          <span className="sr-only sm:not-sr-only">Nova categoria</span>
+        </Button>
+      }
+    />
+  )
 
   return (
     <>
@@ -58,7 +69,7 @@ export default async function AdminCategoriesPage() {
           />
         </>
       ) : (
-        <CategoriesView categories={categories} action={newButton} />
+        <CategoriesView categories={categories} action={headerButton} />
       )}
     </>
   )

@@ -172,9 +172,9 @@ export function ProductsManager({
   const hasFilters = Boolean(filters.q.trim() || filters.categoria || filters.status !== "todos")
 
   const newButton = (
-    <Button type="button" onClick={() => setModal({ mode: "new" })}>
+    <Button type="button" onClick={() => setModal({ mode: "new" })} className="max-sm:size-9 max-sm:px-0">
       <HiOutlinePlus aria-hidden />
-      Novo produto
+      <span className="sr-only sm:not-sr-only">Novo produto</span>
     </Button>
   )
 

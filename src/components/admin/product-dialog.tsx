@@ -325,7 +325,7 @@ export function ProductDialog({
     <Dialog open={open} onOpenChange={(next) => (next ? null : close())}>
       <DialogContent
         showCloseButton={false}
-        className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl"
+        className="flex max-h-[calc(100dvh-1rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[calc(100dvh-2rem)] sm:max-w-4xl"
         onInteractOutside={(event) => {
           // Clicar fora fecha, exceto enquanto salva ou envia fotos.
           if (busy) event.preventDefault()
@@ -350,7 +350,8 @@ export function ProductDialog({
         />
 
         <form id="product-form" method="post" onSubmit={onSubmit} noValidate className="min-h-0 flex-1 overflow-y-auto">
-          <div className="grid gap-6 p-5 md:grid-cols-[260px_minmax(0,1fr)]">
+          {/* grid-cols-1 (minmax 0) no celular: sem ele a coluna cresce com as fotos e estoura a largura do modal. */}
+          <div className="grid grid-cols-1 gap-6 p-4 sm:p-5 md:grid-cols-[260px_minmax(0,1fr)]">
             <PhotoPanel
               photos={photos}
               uploading={uploading}
@@ -360,7 +361,7 @@ export function ProductDialog({
               onReorder={reorder}
             />
 
-            <div className="grid content-start gap-x-4 gap-y-5 sm:grid-cols-2">
+            <div className="grid min-w-0 grid-cols-1 content-start gap-x-4 gap-y-5 sm:grid-cols-2">
               <Field data-invalid={Boolean(errors.name)} className="sm:col-span-2">
                 <FieldLabel htmlFor="product-name">Nome <span className="text-destructive" aria-hidden>*</span></FieldLabel>
                 <div className="relative">
@@ -573,7 +574,8 @@ export function ProductDialog({
           />
         ) : null}
 
-        <footer className="flex flex-col-reverse gap-2 border-t border-border/60 bg-muted/30 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* No celular: "Ativo" numa linha e as ações lado a lado embaixo, para sobrar espaço ao formulário. */}
+        <footer className="flex flex-col gap-2.5 border-t border-border/60 bg-muted/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div className="flex items-center gap-3">
             {/* Ativo fica no rodapé, junto das ações: é a decisão de publicar ou não. */}
             <Controller
@@ -613,7 +615,7 @@ export function ProductDialog({
                   : null}
             </p>
           </div>
-          <div className="flex flex-col-reverse gap-2 sm:flex-row">
+          <div className="flex gap-2">
             {!isEdit ? (
               <Button
                 type="button"
@@ -623,13 +625,13 @@ export function ProductDialog({
                 className="border-gold/50 bg-transparent text-gold hover:bg-gold/10 hover:text-gold"
               >
                 <HiOutlineSparkles aria-hidden />
-                Importar
+                <span className="sr-only sm:not-sr-only">Importar</span>
               </Button>
             ) : null}
-            <Button type="button" variant="outline" onClick={close} disabled={busy}>
+            <Button type="button" variant="outline" onClick={close} disabled={busy} className="flex-1 sm:flex-none">
               Cancelar
             </Button>
-            <Button type="submit" form="product-form" disabled={busy || (isEdit && !isDirty)}>
+            <Button type="submit" form="product-form" disabled={busy || (isEdit && !isDirty)} className="flex-1 sm:flex-none">
               {isPending ? "Salvando…" : product ? "Salvar alterações" : "Criar produto"}
             </Button>
           </div>
@@ -711,7 +713,7 @@ function PhotoPanel({
       {primary ? (
         <div
           className={cn(
-            "group relative aspect-square overflow-hidden rounded-xl bg-muted shadow-sm ring-1 ring-foreground/5",
+            "group relative aspect-[4/3] overflow-hidden rounded-xl bg-muted shadow-sm ring-1 ring-foreground/5 md:aspect-square",
             (dragging || (dragKey && overKey === primary.key)) && "ring-2 ring-gold/60",
           )}
           // Soltar uma miniatura aqui a torna a principal.
@@ -750,7 +752,7 @@ function PhotoPanel({
           onClick={pick}
           disabled={!canAdd}
           className={cn(
-            "group flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border px-6 text-center transition-colors outline-none hover:border-gold/50 hover:bg-gold/5 focus-visible:ring-3 focus-visible:ring-ring/50",
+            "group flex aspect-[2/1] w-full flex-col items-center justify-center gap-3 rounded-xl border-2 md:aspect-square border-dashed border-border px-6 text-center transition-colors outline-none hover:border-gold/50 hover:bg-gold/5 focus-visible:ring-3 focus-visible:ring-ring/50",
             dragging && "border-gold bg-gold/5",
           )}
         >

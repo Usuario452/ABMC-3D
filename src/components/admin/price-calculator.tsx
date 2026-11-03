@@ -307,7 +307,7 @@ export function PriceCalculatorDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="flex max-h-[calc(100dvh-2rem)] w-[85vw] max-w-[85vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-[85vw]"
+        className="flex max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[calc(100dvh-2rem)] sm:w-[85vw] sm:max-w-[85vw]"
       >
         <ModalHeader
           icon={HiOutlineCalculator}
@@ -315,7 +315,7 @@ export function PriceCalculatorDialog({
           description="Custo real da peça mais a margem; use o resultado como preço do produto."
           onClose={() => onOpenChange(false)}
         />
-        <div className="min-h-0 flex-1 overflow-y-auto bg-background/60 p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-background/60 p-3 sm:p-5">
           <PriceCalculator
             onUse={(priceCents) => {
               onUse(priceCents);
@@ -456,7 +456,7 @@ function Calculator({ onUse }: CalculatorProps) {
     >
       {/* Um card só com todos os dados; grupos separados por rótulos discretos. */}
       <div className="rounded-lg bg-card shadow-panel">
-        <div className="border-b border-border/60 px-5 py-3.5">
+        <div className="border-b border-border/60 px-4 py-3.5 sm:px-5">
           <div className="mb-2 flex items-center justify-between gap-3">
             <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
               Modelo de peça
@@ -477,7 +477,7 @@ function Calculator({ onUse }: CalculatorProps) {
           </div>
           {/* Cada modelo preenche peso, tempo, trabalho, quantidade e margem. */}
           <div
-            className="flex flex-wrap items-center gap-y-1 divide-x divide-border"
+            className="grid grid-cols-2 gap-x-3 gap-y-1 sm:flex sm:flex-wrap sm:items-center sm:divide-x sm:divide-border"
             role="group"
             aria-label="Modelos de peça"
           >
@@ -494,7 +494,7 @@ function Calculator({ onUse }: CalculatorProps) {
                     setPreset(item.label);
                   }}
                   className={cn(
-                    "inline-flex cursor-pointer items-center gap-2 px-3 py-1.5 text-left transition-colors outline-none first:pl-0 hover:text-gold focus-visible:ring-2 focus-visible:ring-ring",
+                    "inline-flex min-w-0 cursor-pointer flex-wrap items-center gap-x-2 py-1.5 text-left transition-colors outline-none hover:text-gold focus-visible:ring-2 focus-visible:ring-ring sm:flex-nowrap sm:px-3 sm:first:pl-0",
                     active && "text-gold",
                   )}
                 >
@@ -509,7 +509,7 @@ function Calculator({ onUse }: CalculatorProps) {
           </div>
         </div>
 
-        <div className="space-y-6 p-5">
+        <div className="space-y-6 p-4 sm:p-5">
           <Group title="Material e tempo">
             {field(
               "weightGrams",
@@ -607,12 +607,24 @@ function Calculator({ onUse }: CalculatorProps) {
       </div>
 
       {/* Resultado: cards separados por assunto, fixos ao rolar. */}
-      <aside className="space-y-4 lg:sticky lg:top-6" aria-live="polite">
-        <section className="rounded-lg bg-card p-5 shadow-panel">
+      <aside
+        className={cn(
+          "space-y-4 lg:sticky lg:top-6",
+          // No modal, no celular, o preço fica preso no rodapé enquanto os campos rolam.
+          onUse && "max-lg:sticky max-lg:-bottom-3 max-lg:z-10 max-lg:-mx-3 max-lg:-mb-3",
+        )}
+        aria-live="polite"
+      >
+        <section
+          className={cn(
+            "rounded-lg bg-card p-4 shadow-panel sm:p-5",
+            onUse && "max-lg:rounded-none max-lg:border-t max-lg:border-border/60",
+          )}
+        >
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs text-muted-foreground">Preço sugerido por peça</p>
-              <p className="mt-1 text-4xl font-bold tracking-tight tabular-nums">
+              <p className="mt-1 text-3xl font-bold tracking-tight tabular-nums sm:text-4xl">
                 {brl.format(result.unitPrice)}
               </p>
             </div>
@@ -636,7 +648,7 @@ function Calculator({ onUse }: CalculatorProps) {
               </span>
             </div>
           ) : null}
-          <dl className="mt-4 grid grid-cols-2 gap-1">
+          <dl className={cn("mt-4 grid grid-cols-2 gap-1", onUse && "max-lg:hidden")}>
             <Stat label="Custo" value={brl.format(result.unitCost)} />
             <Stat label="Lucro" value={brl.format(result.unitProfit)} tone="text-success" />
             <Stat
@@ -651,7 +663,7 @@ function Calculator({ onUse }: CalculatorProps) {
           {onUse ? (
             <Button
               type="button"
-              className="mt-4 w-full"
+              className="mt-3 w-full lg:mt-4"
               disabled={!(result.unitPrice > 0)}
               onClick={() => onUse(Math.round(result.unitPrice * 100))}
             >
@@ -666,7 +678,7 @@ function Calculator({ onUse }: CalculatorProps) {
           <>
 
         {/* Composição do preço: cada parte do custo mais o lucro, numa barra só. */}
-        <section className="rounded-lg bg-card p-5 shadow-panel">
+        <section className="rounded-lg bg-card p-4 shadow-panel sm:p-5">
           <SectionTitle
             title="Composição do preço"
             aside={`${integer.format(Math.round(result.profitShare * 100))}% é lucro`}
@@ -713,7 +725,7 @@ function Calculator({ onUse }: CalculatorProps) {
         </section>
 
         {/* Dados para planejar a produção. */}
-        <section className="rounded-lg bg-card p-5 shadow-panel">
+        <section className="rounded-lg bg-card p-4 shadow-panel sm:p-5">
           <SectionTitle title="Produção" />
           <ul className="divide-y divide-border/60 text-sm">
             {[
@@ -829,6 +841,8 @@ function MarginSlider({
             onClick={() => onChange(mark)}
             className={cn(
               "w-9 cursor-pointer rounded-sm text-center text-[11px] tabular-nums transition-colors outline-none first:text-left last:text-right hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
+              // No celular, só as marcas de 100 em 100, para não amontoar.
+              mark % 100 !== 0 && "max-sm:hidden",
               value === mark ? "font-semibold text-success" : "text-muted-foreground",
             )}
           >

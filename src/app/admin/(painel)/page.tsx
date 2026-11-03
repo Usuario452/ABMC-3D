@@ -60,7 +60,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/admin"
     <>
       <PageHeader
         title="Visão geral"
-        description={days === 1 ? "Desempenho da loja hoje, comparado a ontem." : `Desempenho da loja nos últimos ${days} dias, comparado ao período anterior.`}
+        description="Desempenho da loja no período."
         actions={
           <>
             <PeriodSwitch current={days} basePath="/admin" />

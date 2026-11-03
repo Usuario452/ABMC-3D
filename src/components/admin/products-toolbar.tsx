@@ -63,8 +63,8 @@ export function ProductsToolbar({
     (filters.categoria ? 1 : 0) + (filters.status !== "todos" ? 1 : 0) + (filters.ordem !== DEFAULT_PRODUCT_SORT ? 1 : 0)
 
   return (
-    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
-      <div role="search" className="relative min-w-0 flex-1 basis-full sm:w-72 sm:flex-none sm:basis-auto">
+    <div className="flex w-full items-center gap-2 sm:w-auto">
+      <div role="search" className="relative min-w-0 flex-1 sm:w-72 sm:flex-none">
         <Label htmlFor="admin-search" className="sr-only">
           Buscar produto pelo nome
         </Label>
@@ -78,7 +78,7 @@ export function ProductsToolbar({
           enterKeyHint="search"
           maxLength={80}
           autoComplete="off"
-          placeholder="Buscar produto pelo nome"
+          placeholder="Buscar produto"
           value={filters.q}
           onChange={(event) => onChange({ q: event.target.value.slice(0, 80) })}
           className="h-9 border-transparent bg-card pr-9 pl-9 shadow-panel [&::-webkit-search-cancel-button]:hidden"
@@ -106,12 +106,13 @@ export function ProductsToolbar({
           <button
             type="button"
             className={cn(
-              "inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-md px-3.5 text-sm font-medium shadow-panel transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:flex-none",
+              "inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md px-2.5 text-sm font-medium shadow-panel transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:px-3.5",
               activeCount > 0 ? "bg-gold/15 text-gold" : "bg-card text-muted-foreground hover:text-foreground",
             )}
           >
             <HiOutlineAdjustmentsHorizontal className="size-4" aria-hidden />
-            Filtros
+            {/* No celular, só o ícone: busca, filtros e "novo" cabem numa linha. */}
+            <span className="sr-only sm:not-sr-only">Filtros</span>
             {activeCount > 0 ? (
               <span className="flex size-5 items-center justify-center rounded-full bg-gold text-[10px] font-semibold text-primary-foreground">
                 {activeCount}

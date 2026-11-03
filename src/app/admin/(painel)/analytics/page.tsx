@@ -84,7 +84,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
     <>
       <PageHeader
         title="Analytics"
-        description={days === 1 ? "Visitas, produtos e buscas da loja hoje." : `Visitas, produtos e buscas da loja nos últimos ${days} dias.`}
+        description="Visitas, produtos e buscas da loja."
         actions={<PeriodSwitch current={days} basePath="/admin/analytics" />}
       />
 

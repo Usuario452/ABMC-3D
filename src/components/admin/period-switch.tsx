@@ -13,18 +13,28 @@ export function parsePeriod(value: string | string[] | undefined): OverviewPerio
 /** Seletor de período como links: o período fica na URL e a página continua sendo renderizada no servidor. */
 export function PeriodSwitch({ current, basePath }: { current: OverviewPeriod; basePath: string }) {
   return (
-    <nav aria-label="Período" className="flex h-9 items-stretch gap-0.5 self-start rounded-md bg-card p-1 shadow-panel">
+    <nav aria-label="Período" className="flex h-9 items-stretch gap-0.5 self-start rounded-md bg-card p-1 shadow-panel max-sm:flex-1">
       {OVERVIEW_PERIODS.map((period) => (
         <Link
           key={period}
           href={period === DEFAULT_PERIOD ? basePath : `${basePath}?periodo=${period}`}
           aria-current={period === current ? "true" : undefined}
           className={cn(
-            "flex items-center rounded-md px-3 text-xs font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "flex items-center justify-center rounded-md px-2.5 text-xs max-sm:flex-1 sm:px-3 font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
             period === current ? "bg-gold/15 text-gold" : "text-muted-foreground hover:text-foreground",
           )}
         >
-          {period === 1 ? "Hoje" : `${period} dias`}
+          {period === 1 ? (
+            "Hoje"
+          ) : (
+            <>
+              {/* No celular, "30d": o seletor e o botão do lado cabem numa linha. */}
+              <span className="sm:hidden" aria-hidden>
+                {period}d
+              </span>
+              <span className="max-sm:sr-only">{period} dias</span>
+            </>
+          )}
         </Link>
       ))}
     </nav>

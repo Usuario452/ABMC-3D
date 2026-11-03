@@ -42,7 +42,7 @@ export function ProductsTable({
             </TableHead>
             <TableHead className={`${HEAD} hidden text-right md:table-cell`}>Preço</TableHead>
             <TableHead className={`${HEAD} text-center`}>Ativo</TableHead>
-            <TableHead className={`${HEAD} w-0`}>
+            <TableHead className={`${HEAD} hidden w-0 sm:table-cell`}>
               <span className="sr-only">Ações</span>
             </TableHead>
           </TableRow>
@@ -191,7 +191,7 @@ function ProductRow({
               <button
                 type="button"
                 onClick={edit}
-                className="truncate rounded-sm text-left font-medium transition-colors outline-none hover:text-gold focus-visible:ring-2 focus-visible:ring-ring"
+                className="line-clamp-2 rounded-sm text-left font-medium break-words whitespace-normal transition-colors outline-none hover:text-gold focus-visible:ring-2 focus-visible:ring-ring sm:truncate sm:whitespace-nowrap"
               >
                 {product.name}
               </button>
@@ -246,7 +246,8 @@ function ProductRow({
           onConfirm={deactivate}
         />
       </TableCell>
-      <TableCell className="px-2 sm:px-3">
+      {/* No celular, tocar na linha abre a edição (e o excluir fica no modal), para sobrar espaço ao nome. */}
+      <TableCell className="hidden px-2 sm:table-cell sm:px-3">
         <div className="flex justify-end gap-0.5 whitespace-nowrap opacity-100 transition-opacity sm:opacity-60 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
           <Button type="button" variant="ghost" size="icon" className="size-8" onClick={edit} aria-label={`Editar ${product.name}`}>
             <MdEdit className="size-4" aria-hidden />

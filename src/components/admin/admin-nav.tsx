@@ -35,7 +35,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 
@@ -309,33 +309,80 @@ export function AdminSidebar({ email }: { email: string | null }) {
   )
 }
 
-/** Barra flutuante do topo (abaixo de lg), com a gaveta do menu. */
-export function AdminMobileBar({ email }: { email: string | null }) {
+/** Itens fixos na barra de baixo do celular; o resto fica no "Menu". */
+const PINNED: NavItem[] = [
+  { ...MENU[0], label: "Início" },
+  MENU[1],
+  MENU[2],
+  MENU[3],
+]
+
+const isActive = (target: string, { href, exact }: NavItem) =>
+  exact ? target === href : target === href || target.startsWith(`${href}/`)
+
+/**
+ * Navegação do celular (abaixo de lg): barra fixa embaixo com as páginas principais e o "Menu", que abre
+ * a gaveta com todas as páginas, a loja, o tema e sair. No celular o painel não tem cabeçalho.
+ */
+export function AdminBottomNav({ email }: { email: string | null }) {
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  // Destaque imediato no toque, antes da página nova chegar (mesma ideia do menu lateral).
+  const [clicked, setClicked] = useState<{ href: string; from: string } | null>(null)
+  const target = clicked && clicked.from === pathname ? clicked.href : pathname
+  const hiddenActive = !PINNED.some((item) => isActive(target, item))
+
+  const tab =
+    "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[10px] leading-none font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring"
 
   return (
-    <div className="sticky top-0 z-30 p-3 lg:hidden">
-      <div className="flex h-14 items-center gap-2 rounded-lg bg-card px-2 shadow-md shadow-black/5 dark:shadow-none">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Abrir menu do painel">
-              <HiBars3 className="size-6" aria-hidden />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[85vw] max-w-xs">
-            <SheetHeader className="sr-only">
-              <SheetTitle>Painel</SheetTitle>
-              <SheetDescription>Navegação do painel administrativo</SheetDescription>
-            </SheetHeader>
-            <div className="h-full p-4">
-              <SidebarContent email={email} onNavigate={() => setOpen(false)} />
-            </div>
-          </SheetContent>
-        </Sheet>
-        <Link href="/admin" aria-label="Painel KuboStudio" className="block w-32">
-          <BrandLogo />
-        </Link>
-      </div>
-    </div>
+    <>
+      <nav
+        aria-label="Painel"
+        className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 flex gap-1 rounded-xl border border-border bg-card p-1.5 shadow-lg shadow-black/10 lg:hidden"
+      >
+        {PINNED.map((item) => {
+          const active = isActive(target, item)
+          const Icon = active ? item.activeIcon : item.icon
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setClicked({ href: item.href, from: pathname })}
+              aria-current={active ? "page" : undefined}
+              className={cn(tab, active ? "bg-gold/10 text-gold" : "text-muted-foreground hover:text-foreground")}
+            >
+              <Icon className="size-5" aria-hidden />
+              {item.label}
+            </Link>
+          )
+        })}
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Abrir menu do painel"
+          aria-expanded={open}
+          className={cn(
+            tab,
+            open || hiddenActive ? "bg-gold/10 text-gold" : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <HiBars3 className="size-5" aria-hidden />
+          Menu
+        </button>
+      </nav>
+
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="right" className="w-[85vw] max-w-xs">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Painel</SheetTitle>
+            <SheetDescription>Navegação do painel administrativo</SheetDescription>
+          </SheetHeader>
+          <div className="h-full p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <SidebarContent email={email} onNavigate={() => setOpen(false)} />
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   )
 }

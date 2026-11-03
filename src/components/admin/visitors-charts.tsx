@@ -35,7 +35,7 @@ export function VisitorsChart({ series }: { series: VisitorsOverview["series"] }
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={series} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+      <AreaChart data={series} margin={{ top: 8, right: 8, bottom: 0, left: -8 }}>
         <defs>
           <linearGradient id="fill-visitors" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={GOLD} stopOpacity={0.35} />

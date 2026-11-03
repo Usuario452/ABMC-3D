@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
-import { AdminMobileBar, AdminSidebar } from "@/components/admin/admin-nav"
+import { AdminBottomNav, AdminSidebar } from "@/components/admin/admin-nav"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getAdminStatus, requireAdminPage } from "@/lib/auth/admin"
 
@@ -33,10 +33,11 @@ async function AdminGate({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="relative flex min-w-0 flex-1 flex-col">
-        <AdminMobileBar email={user.email} />
-        <main id="conteudo" className="page-container flex-1 pt-2 pb-12 lg:pt-10">
+        {/* No celular não há cabeçalho: a navegação fica na barra de baixo, e o conteúdo reserva o espaço dela. */}
+        <main id="conteudo" className="page-container flex-1 pt-6 pb-28 lg:pt-10 lg:pb-12">
           {children}
         </main>
+        <AdminBottomNav email={user.email} />
       </div>
     </div>
   )

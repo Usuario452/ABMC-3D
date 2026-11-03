@@ -27,38 +27,43 @@ export function Kpi({
   const isNew = compared && previous === 0 && value > 0
   const good = delta !== null && (lowerIsBetter ? delta <= 0 : delta >= 0)
 
+  const deltaBadge = isNew ? (
+    <span className="inline-flex items-center gap-0.5 text-success">
+      <HiOutlineArrowTrendingUp className="size-3.5" aria-hidden />
+      novo
+    </span>
+  ) : delta === 0 ? (
+    <span className="inline-flex items-center gap-0.5 text-muted-foreground">
+      <HiOutlineMinus className="size-3.5" aria-hidden />
+      0%
+    </span>
+  ) : delta !== null ? (
+    <span className={cn("inline-flex items-center gap-0.5", good ? "text-success" : "text-destructive")}>
+      {delta >= 0 ? (
+        <HiOutlineArrowTrendingUp className="size-3.5" aria-hidden />
+      ) : (
+        <HiOutlineArrowTrendingDown className="size-3.5" aria-hidden />
+      )}
+      {Math.abs(delta).toFixed(0)}%
+    </span>
+  ) : null
+
+  // Compacto: ícone junto do rótulo, variação ao lado do número e a dica numa linha só.
   return (
-    <div className="rounded-lg bg-card p-4 shadow-panel">
-      <div className="flex items-center justify-between gap-2">
-        <dt className="text-xs text-muted-foreground">{label}</dt>
-        <span className="flex size-8 items-center justify-center rounded-lg bg-gold/10 text-gold">
-          <Icon className="size-4" aria-hidden />
+    <div className="min-w-0 rounded-lg bg-card px-3.5 py-3 shadow-panel sm:px-4">
+      <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Icon className="size-4 shrink-0 text-gold" aria-hidden />
+        <span className="truncate">{label}</span>
+      </dt>
+      <dd className="mt-1.5">
+        <span className="flex items-baseline gap-2">
+          <span className="text-xl font-bold tracking-tight tabular-nums sm:text-2xl">
+            {value === undefined ? "—" : format(value)}
+          </span>
+          {deltaBadge ? <span className="text-[11px] font-medium tabular-nums">{deltaBadge}</span> : null}
         </span>
-      </div>
-      <dd className="mt-2 text-2xl font-bold tracking-tight tabular-nums">{value === undefined ? "—" : format(value)}</dd>
-      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-        {isNew ? (
-          <span className="inline-flex items-center gap-0.5 font-medium text-success">
-            <HiOutlineArrowTrendingUp className="size-3.5" aria-hidden />
-            novo
-          </span>
-        ) : delta === 0 ? (
-          <span className="inline-flex items-center gap-0.5 font-medium">
-            <HiOutlineMinus className="size-3.5" aria-hidden />
-            0%
-          </span>
-        ) : delta !== null ? (
-          <span className={cn("inline-flex items-center gap-0.5 font-medium", good ? "text-success" : "text-destructive")}>
-            {delta >= 0 ? (
-              <HiOutlineArrowTrendingUp className="size-3.5" aria-hidden />
-            ) : (
-              <HiOutlineArrowTrendingDown className="size-3.5" aria-hidden />
-            )}
-            {Math.abs(delta).toFixed(0)}%
-          </span>
-        ) : null}
-        {hint ? <span className="truncate">{hint}</span> : null}
-      </div>
+        {hint ? <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">{hint}</span> : null}
+      </dd>
     </div>
   )
 }
