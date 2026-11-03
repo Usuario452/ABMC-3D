@@ -34,10 +34,10 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ModalHeader } from "@/components/admin/modal-header";
+import { CalculatorSkeleton } from "@/components/admin/skeletons";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -282,7 +282,7 @@ export function PriceCalculator({ onUse }: CalculatorProps = {}) {
     () => true,
     () => false,
   );
-  return mounted ? <Calculator onUse={onUse} /> : <CalculatorSkeleton />;
+  return mounted ? <Calculator onUse={onUse} /> : <CalculatorSkeleton compact={Boolean(onUse)} />;
 }
 
 type CalculatorProps = {
@@ -990,18 +990,6 @@ function Stat({
     <div className="rounded-md bg-muted/50 px-2.5 py-1.5">
       <dt className="text-[10px] leading-tight text-muted-foreground">{label}</dt>
       <dd className={cn("text-[13px] font-semibold tabular-nums", tone)}>{value}</dd>
-    </div>
-  );
-}
-
-function CalculatorSkeleton() {
-  return (
-    <div
-      className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_400px]"
-      aria-busy
-    >
-      <Skeleton className="h-[460px] w-full" />
-      <Skeleton className="h-80 w-full" />
     </div>
   );
 }
