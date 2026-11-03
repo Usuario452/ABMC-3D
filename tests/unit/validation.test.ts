@@ -7,9 +7,15 @@ const CATEGORY = "33333333-3333-4333-8333-333333333333"
 const PRODUCT = "44444444-4444-4444-8444-444444444444"
 
 describe("productSchema", () => {
+  it("aceita a anotação interna e limita o tamanho", () => {
+    const base = { name: "Vaso", description: "", price: "10", categoryId: "3f1c2d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f", isActive: true, isAvailable: true, isFeatured: false }
+    expect(productSchema.parse(base).internalNotes).toBe("")
+    expect(productSchema.parse({ ...base, internalNotes: "  Importado de x  " }).internalNotes).toBe("Importado de x")
+    expect(productSchema.safeParse({ ...base, internalNotes: "a".repeat(2001) }).success).toBe(false)
+  })
+
   const valid = {
     name: "  Vaso Geométrico  ",
-    slug: "vaso-geometrico",
     description: "Peça impressa em 3D.",
     price: "49,90",
     categoryId: CATEGORY,
@@ -24,18 +30,18 @@ describe("productSchema", () => {
     expect(parsed.price).toBe(4990)
   })
 
-  it("rejeita preço inválido, slug inválido e categoria ausente", () => {
-    const result = productSchema.safeParse({ ...valid, price: "-1", slug: "Vaso Geométrico", categoryId: "" })
+  it("rejeita preço inválido e categoria ausente", () => {
+    const result = productSchema.safeParse({ ...valid, price: "-1", categoryId: "" })
     expect(result.success).toBe(false)
     const fields = result.error?.issues.map((issue) => issue.path[0])
-    expect(fields).toEqual(expect.arrayContaining(["price", "slug", "categoryId"]))
+    expect(fields).toEqual(expect.arrayContaining(["price", "categoryId"]))
   })
 })
 
 describe("categorySchema e signInSchema", () => {
   it("valida campos obrigatórios", () => {
-    expect(categorySchema.safeParse({ name: "", slug: "a", isActive: true }).success).toBe(false)
-    expect(categorySchema.safeParse({ name: "Decoração", slug: "decoracao", isActive: true }).success).toBe(true)
+    expect(categorySchema.safeParse({ name: "", isActive: true }).success).toBe(false)
+    expect(categorySchema.safeParse({ name: "Decoração", isActive: true }).success).toBe(true)
     expect(signInSchema.safeParse({ email: "x", password: "1" }).success).toBe(false)
     expect(signInSchema.safeParse({ email: "admin@exemplo.com", password: "1" }).success).toBe(true)
   })

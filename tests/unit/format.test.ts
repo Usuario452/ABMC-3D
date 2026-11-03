@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { centsToInputValue, formatPrice, parsePriceToCents } from "@/lib/format"
+import { centsToInputValue, formatPrice, maskPriceInput, parsePriceToCents } from "@/lib/format"
 import { slugify } from "@/lib/slug"
 
 const normalize = (value: string) => value.replace(/ /g, " ")
@@ -33,9 +33,25 @@ describe("parsePriceToCents", () => {
   })
 
   it("é o inverso de centsToInputValue", () => {
-    for (const cents of [0, 1, 99, 1990, 123456]) {
+    for (const cents of [0, 1, 99, 1990, 123456, 99_999_999]) {
       expect(parsePriceToCents(centsToInputValue(cents))).toBe(cents)
     }
+  })
+})
+
+describe("maskPriceInput", () => {
+  it("trata os dígitos como centavos e separa os milhares", () => {
+    expect(maskPriceInput("1")).toBe("0,01")
+    expect(maskPriceInput("1990")).toBe("19,90")
+    expect(maskPriceInput("123456")).toBe("1.234,56")
+    expect(maskPriceInput("R$ 100,10")).toBe("100,10")
+    expect(maskPriceInput("100,105")).toBe("1.001,05")
+  })
+
+  it("limpa o campo sem dígitos e para no preço máximo", () => {
+    expect(maskPriceInput("")).toBe("")
+    expect(maskPriceInput("0,00")).toBe("")
+    expect(maskPriceInput("9999999999")).toBe("999.999,99")
   })
 })
 

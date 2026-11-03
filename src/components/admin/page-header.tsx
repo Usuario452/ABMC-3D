@@ -29,7 +29,7 @@ export function PageHeader({
         <h1 className="text-xl font-bold tracking-tight text-balance sm:text-2xl">{title}</h1>
         {description ? <p className="mt-1 max-w-2xl text-[13px] text-muted-foreground">{description}</p> : null}
       </div>
-      {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+      {actions ? <div className="flex flex-wrap gap-2 sm:shrink-0">{actions}</div> : null}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { HiOutlinePlus, HiOutlineTag } from "react-icons/hi2"
-import { CategoriesTable } from "@/components/admin/categories-table"
+import { CategoriesView } from "@/components/admin/categories-table"
 import { CategoryFormDialog } from "@/components/admin/category-form-dialog"
 import { PageHeader } from "@/components/admin/page-header"
 import { StateMessage } from "@/components/shared/state-message"
@@ -36,23 +36,29 @@ export default async function AdminCategoriesPage() {
 
   return (
     <>
-      <PageHeader title="Categorias" description="Organize os produtos do catálogo." actions={newButton} />
       {categories === null ? (
-        <StateMessage
-          role="alert"
-          icon={HiOutlineTag}
-          title="Não foi possível carregar as categorias"
-          description="Verifique a conexão com o banco de dados e tente novamente."
-        />
+        <>
+          <PageHeader title="Categorias" description="Organize os produtos do catálogo." />
+          <StateMessage
+            role="alert"
+            icon={HiOutlineTag}
+            title="Não foi possível carregar as categorias"
+            description="Verifique a conexão com o banco de dados e tente novamente."
+          />
+        </>
       ) : categories.length === 0 ? (
-        <StateMessage
-          icon={HiOutlineTag}
-          title="Nenhuma categoria cadastrada"
-          description="Crie a primeira categoria para começar a cadastrar produtos."
-          action={newButton}
-        />
+        <>
+          <PageHeader title="Categorias" description="Organize os produtos do catálogo." />
+          <StateMessage
+            icon={HiOutlineTag}
+            title="Nenhuma categoria cadastrada"
+            description="Crie a primeira categoria para começar a cadastrar produtos."
+            action={newButton}
+            className="border-0 bg-card py-14 shadow-panel"
+          />
+        </>
       ) : (
-        <CategoriesTable categories={categories} />
+        <CategoriesView categories={categories} action={newButton} />
       )}
     </>
   )

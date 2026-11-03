@@ -11,7 +11,7 @@ import type { CategoryRow, ProductImage, ProductRow } from "@/types/catalog"
  * por requireAdminPage().
  */
 
-export type AdminCategory = CategoryRow & { productCount: number }
+export type AdminCategory = CategoryRow & { productCount: number; coverUrl: string | null }
 
 export type AdminProductListItem = Pick<
   ProductRow,
@@ -19,6 +19,8 @@ export type AdminProductListItem = Pick<
 > & {
   category: { id: string; name: string; is_active: boolean } | null
   image: ProductImage | null
+  /** Intenções de compra: pessoas (sessões do navegador) que adicionaram o produto ao carrinho. */
+  cartIntents: number
 }
 
 export type AdminProduct = ProductRow & { images: ProductImage[] }
@@ -29,7 +31,7 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
     from categories c
     order by c.name
   `
-  return [...rows]
+  return rows.map((row) => ({ ...row, coverUrl: row.cover_path ? getProductImageUrl(row.cover_path) : null }))
 }
 
 type AdminListRow = Omit<AdminProductListItem, "category" | "image"> & {
@@ -50,7 +52,13 @@ export async function getAdminProducts(filters: { q?: string; categoryId?: strin
              where i.product_id = p.id
              order by i.position
              limit 1
-           ) as image
+           ) as image,
+           (
+             -- Sessões distintas; eventos antigos, sem sessão, contam um cada.
+             select count(distinct coalesce(e.session_id::text, e.id::text))::int
+             from analytics_events e
+             where e.product_id = p.id and e.type = 'add_to_cart'
+           ) as "cartIntents"
     from products p
     join categories c on c.id = p.category_id
     where true

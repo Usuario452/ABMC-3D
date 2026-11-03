@@ -3,6 +3,8 @@ export type CategoryRow = {
   id: string
   name: string
   slug: string
+  /** Capa opcional no R2 (categories/<id>/…); null sem capa. */
+  cover_path: string | null
   is_active: boolean
   created_at: Date
   updated_at: Date
@@ -13,6 +15,8 @@ export type ProductRow = {
   name: string
   slug: string
   description: string
+  /** Anotação interna (só no painel). */
+  internal_notes: string
   price_cents: number
   category_id: string
   is_active: boolean

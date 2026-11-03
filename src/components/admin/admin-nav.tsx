@@ -14,31 +14,27 @@ import {
   HiHome,
   HiChartBar,
   HiOutlineChartBar,
-  HiShoppingBag,
   HiTag,
   HiOutlineChevronRight,
   HiOutlineCube,
   HiOutlineGlobeAlt,
   HiOutlineHome,
-  HiOutlineMoon,
-  HiOutlineShoppingBag,
-  HiOutlineSun,
   HiOutlineTag,
 } from "react-icons/hi2"
 import { SignOutItem } from "@/components/admin/sign-out-item"
+import { ThemeSwitchVisual } from "@/components/admin/theme-switch"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
+  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { useTheme, type Theme } from "@/lib/theme"
+import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 
 type NavItem = {
@@ -60,7 +56,6 @@ const MENU: NavItem[] = [
 
 const STORE: NavItem[] = [
   { href: "/", label: "Ver loja", icon: HiOutlineGlobeAlt, activeIcon: HiGlobeAlt, external: true },
-  { href: "/catalogo", label: "Catálogo", icon: HiOutlineShoppingBag, activeIcon: HiShoppingBag, external: true },
 ]
 
 // ---------------------------------------------------------------------------
@@ -211,17 +206,20 @@ function UserMenu({ email, collapsed }: { email: string | null; collapsed: boole
       <DropdownMenuContent side="right" align="end" sideOffset={12} className="w-56">
         <DropdownMenuLabel className="truncate font-normal text-muted-foreground">{email ?? "Administrador"}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">Tema</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as Theme)}>
-          <DropdownMenuRadioItem value="light" onSelect={(event) => event.preventDefault()}>
-            <HiOutlineSun className="size-4" aria-hidden />
-            Claro
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="dark" onSelect={(event) => event.preventDefault()}>
-            <HiOutlineMoon className="size-4" aria-hidden />
-            Escuro
-          </DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
+        {/* A linha toda alterna o tema (clique ou Enter), sem fechar o menu. */}
+        <DropdownMenuItem
+          role="menuitemcheckbox"
+          aria-checked={theme === "dark"}
+          aria-label="Tema escuro"
+          onSelect={(event) => {
+            event.preventDefault()
+            setTheme(theme === "dark" ? "light" : "dark")
+          }}
+          className="justify-between"
+        >
+          <span>Tema {theme === "dark" ? "escuro" : "claro"}</span>
+          <ThemeSwitchVisual theme={theme} />
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <SignOutItem />
       </DropdownMenuContent>

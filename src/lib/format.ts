@@ -49,5 +49,17 @@ export function parsePriceToCents(input: string): number | null {
 
 /** Converte centavos para o formato de edição (ex.: 1990 → "19,90"). */
 export function centsToInputValue(cents: number) {
-  return (cents / 100).toFixed(2).replace(".", ",")
+  const [reais, centavos] = (cents / 100).toFixed(2).split(".")
+  return `${reais.replace(/\B(?=(\d{3})+(?!\d))/g, ".")},${centavos}`
+}
+
+/**
+ * Máscara do campo de preço: os dígitos digitados são centavos, da direita para a esquerda
+ * ("1" → "0,01", "1990" → "19,90", "123456" → "1.234,56"). Sem dígitos, devolve "".
+ * Para no maior preço aceito.
+ */
+export function maskPriceInput(input: string) {
+  const digits = input.replace(/\D/g, "").replace(/^0+/, "")
+  if (!digits) return ""
+  return centsToInputValue(Math.min(Number(digits.slice(0, 9)), MAX_PRICE_CENTS))
 }

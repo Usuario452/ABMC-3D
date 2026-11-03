@@ -44,6 +44,18 @@ export function isProductImagePath(path: string) {
   return STORAGE_PATH_PATTERN.test(path)
 }
 
+const CATEGORY_COVER_PATTERN = /^categories\/[0-9a-f-]{36}\/[A-Za-z0-9._-]{1,120}$/
+
+export function isCategoryCoverPath(path: string) {
+  return CATEGORY_COVER_PATTERN.test(path)
+}
+
+/** Caminho seguro da capa de categoria, gerado no servidor: categories/<categoria>/<timestamp>-<aleatório>.webp */
+export function buildCategoryCoverPath(categoryId: string, random: string, now = Date.now()) {
+  const safeRandom = random.replace(/[^a-z0-9]/gi, "").slice(0, 12).toLowerCase()
+  return `categories/${categoryId}/${now}-${safeRandom}.webp`
+}
+
 /** Caminho seguro, gerado no servidor: products/<produto>/<timestamp>-<aleatório>.<ext> */
 export function buildStoragePath(productId: string, type: AllowedImageType, random: string, now = Date.now()) {
   const safeRandom = random.replace(/[^a-z0-9]/gi, "").slice(0, 12).toLowerCase()

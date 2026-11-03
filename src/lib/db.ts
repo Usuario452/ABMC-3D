@@ -8,6 +8,8 @@ import { requireDatabaseEnv } from "@/lib/env"
  *
  * - prepare: false — compatível com poolers em modo transaction (PgBouncer/Supavisor,
  *   porta 6543 no Supabase), indicados para ambientes serverless como a Vercel.
+ * - max_pipeline: 1 — esses poolers não aceitam várias consultas encadeadas na mesma conexão:
+ *   com Promise.all a conexão trava sem erro. Uma consulta por vez em cada conexão resolve.
  * - Uma única instância por processo; em desenvolvimento ela sobrevive ao hot reload.
  */
 export type Sql = postgres.Sql
@@ -19,6 +21,7 @@ function createSql(): Sql {
   return postgres(env.url, {
     prepare: false,
     max: process.env.NODE_ENV === "production" ? 5 : 3,
+    max_pipeline: 1,
     idle_timeout: 20,
     connect_timeout: 10,
     onnotice: () => {},
@@ -40,6 +43,7 @@ export async function withScopedDb<T>(run: (sql: Sql) => Promise<T>): Promise<T>
   const sql = postgres(requireDatabaseEnv().url, {
     prepare: false,
     max: 1,
+    max_pipeline: 1,
     idle_timeout: 5,
     connect_timeout: 10,
     onnotice: () => {},

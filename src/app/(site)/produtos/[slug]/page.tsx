@@ -9,6 +9,7 @@ import { ProductGallery } from "@/components/catalog/product-gallery"
 import { ProductGrid } from "@/components/catalog/product-card"
 import { ProductDetailSkeleton } from "@/components/catalog/skeletons"
 import { LoadError } from "@/components/shared/load-error"
+import { Markdown, markdownToText } from "@/components/shared/markdown"
 import { siteConfig } from "@/config/site"
 import { getProductBySlug, getRelatedProducts } from "@/lib/data/catalog"
 import { load } from "@/lib/data/load"
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: PageProps<"/produtos/[slug]">
 
   const product = result.data
   if (!product) return { title: "Produto não encontrado", robots: { index: false } }
-  const description = product.description.slice(0, 160) || siteConfig.seo.description
+  const description = markdownToText(product.description).slice(0, 160) || siteConfig.seo.description
   return {
     title: product.name,
     description,
@@ -126,13 +127,7 @@ async function ProductContent({ params }: { params: PageProps<"/produtos/[slug]"
               <h2 id="descricao-titulo" className="text-lg font-semibold">
                 Descrição
               </h2>
-              <div className="mt-3 space-y-3 text-muted-foreground">
-                {product.description.split(/\n{2,}/).map((paragraph, index) => (
-                  <p key={index} className="whitespace-pre-line">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
+              <Markdown className="mt-3">{product.description}</Markdown>
             </section>
           ) : null}
         </div>

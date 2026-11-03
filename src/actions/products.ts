@@ -3,17 +3,20 @@
 import { authorizeAdminAction } from "@/lib/auth/admin"
 import { describeDbError, failure, success, validationFailure, type ActionResult } from "@/lib/actions/result"
 import { catalogChanged } from "@/lib/actions/revalidate"
+import { getAdminProduct, type AdminProduct } from "@/lib/data/admin"
+import { uniqueSlug } from "@/lib/data/unique-slug"
 import { pgErrorCode } from "@/lib/db"
 import { deleteObjects } from "@/lib/r2"
 import { productSchema, uuidSchema, type ProductData, type ProductInput } from "@/lib/validation/schemas"
 
-const DUPLICATE_SLUG = "Já existe um produto com este slug. Escolha outro."
+const DUPLICATE_SLUG = "Já existe um produto com este endereço. Tente salvar de novo."
 
+/** Campos editáveis. O slug fica de fora: é gerado na criação e não muda depois (links continuam valendo). */
 function toRow(data: ProductData) {
   return {
     name: data.name,
-    slug: data.slug,
     description: data.description,
+    internal_notes: data.internalNotes,
     price_cents: data.price,
     category_id: data.categoryId,
     is_active: data.isActive,
@@ -42,7 +45,10 @@ export async function createProduct(input: ProductInput): Promise<ActionResult<{
   if (!parsed.success) return validationFailure(parsed.error)
 
   try {
-    const [row] = await auth.sql<{ id: string }[]>`insert into products ${auth.sql(toRow(parsed.data))} returning id`
+    const slug = await uniqueSlug(auth.sql, "products", parsed.data.name, "produto")
+    const [row] = await auth.sql<{ id: string }[]>`
+      insert into products ${auth.sql({ ...toRow(parsed.data), slug })} returning id
+    `
     catalogChanged()
     return success({ id: row.id }, "Produto criado.")
   } catch (error) {
@@ -101,6 +107,22 @@ export async function setProductFlag(id: string, flag: ProductFlag, value: boole
 
   catalogChanged()
   return success(null, FLAG_MESSAGES[flag][value ? 0 : 1])
+}
+
+/** Dados completos de um produto (descrição, anotação e fotos) para abrir o modal de edição sem recarregar a página. */
+export async function getProductForEdit(id: string): Promise<ActionResult<AdminProduct>> {
+  const auth = await authorizeAdminAction()
+  if (!auth.ok) return auth
+
+  const parsedId = uuidSchema.safeParse(id)
+  if (!parsedId.success) return failure("Produto inválido.")
+
+  try {
+    const product = await getAdminProduct(parsedId.data)
+    return product ? success(product) : failure("Produto não encontrado.")
+  } catch (error) {
+    return failure(describeDbError({ code: pgErrorCode(error) }))
+  }
 }
 
 export async function deleteProduct(id: string): Promise<ActionResult> {

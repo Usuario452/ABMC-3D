@@ -1,31 +1,32 @@
 import Link from "next/link"
-import { HiOutlineQuestionMarkCircle } from "react-icons/hi2"
-import { BrandLogo } from "@/components/brand/brand-logo"
-import { StateMessage } from "@/components/shared/state-message"
+import { HiOutlineHome, HiOutlineQuestionMarkCircle, HiOutlineSquares2X2 } from "react-icons/hi2"
+import { StatusScreen } from "@/components/shared/status-screen"
 import { Button } from "@/components/ui/button"
 
 export default function NotFound() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-10 px-4 py-16">
-      <Link href="/" aria-label="Página inicial" className="block w-44">
-        <BrandLogo />
-      </Link>
-      <StateMessage
-        className="w-full max-w-lg"
-        icon={HiOutlineQuestionMarkCircle}
-        title="Página não encontrada"
-        description="O endereço acessado não existe ou o produto não está mais disponível."
-        action={
-          <>
-            <Button asChild>
-              <Link href="/catalogo">Ver catálogo</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/">Página inicial</Link>
-            </Button>
-          </>
-        }
-      />
-    </main>
+    <StatusScreen
+      icon={HiOutlineQuestionMarkCircle}
+      code="404"
+      eyebrow="Página não encontrada"
+      title="Este endereço não existe"
+      description="O link pode estar incorreto ou o produto não está mais disponível."
+      actions={
+        <>
+          <Button asChild size="lg">
+            <Link href="/catalogo">
+              <HiOutlineSquares2X2 aria-hidden />
+              Ver catálogo
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href="/">
+              <HiOutlineHome aria-hidden />
+              Página inicial
+            </Link>
+          </Button>
+        </>
+      }
+    />
   )
 }

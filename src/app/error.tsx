@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { useEffect } from "react"
-import { HiOutlineExclamationTriangle } from "react-icons/hi2"
-import { StateMessage } from "@/components/shared/state-message"
+import { HiArrowPath, HiOutlineExclamationTriangle, HiOutlineHome } from "react-icons/hi2"
+import { StatusScreen } from "@/components/shared/status-screen"
 import { Button } from "@/components/ui/button"
 
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
@@ -12,22 +12,27 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
   }, [error])
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-16">
-      <StateMessage
-        role="alert"
-        className="w-full max-w-lg"
-        icon={HiOutlineExclamationTriangle}
-        title="Algo deu errado"
-        description="Ocorreu um erro inesperado ao carregar esta página. Tente novamente em instantes."
-        action={
-          <>
-            <Button onClick={reset}>Tentar novamente</Button>
-            <Button asChild variant="outline">
-              <Link href="/">Página inicial</Link>
-            </Button>
-          </>
-        }
-      />
-    </main>
+    <StatusScreen
+      role="alert"
+      icon={HiOutlineExclamationTriangle}
+      eyebrow="Erro inesperado"
+      title="Algo deu errado"
+      description="Não foi possível carregar esta página agora. Tente de novo em instantes; se continuar, volte para a página inicial."
+      actions={
+        <>
+          <Button onClick={reset} size="lg">
+            <HiArrowPath aria-hidden />
+            Tentar novamente
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href="/">
+              <HiOutlineHome aria-hidden />
+              Página inicial
+            </Link>
+          </Button>
+        </>
+      }
+      footnote={error.digest ? <>Código de referência: <span className="font-mono">{error.digest}</span></> : null}
+    />
   )
 }

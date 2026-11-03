@@ -1,12 +1,12 @@
 "use client"
 
 import Image from "next/image"
-import Link from "next/link"
-import { useTransition } from "react"
-import { HiOutlinePencilSquare, HiOutlinePhoto, HiOutlineTrash } from "react-icons/hi2"
+import { useState, useTransition } from "react"
+import { HiChevronLeft, HiChevronRight, HiOutlineEyeSlash, HiOutlinePhoto, HiOutlineTrash, HiStar } from "react-icons/hi2"
+import { MdEdit } from "react-icons/md"
 import { deleteProduct, setProductFlag } from "@/actions/products"
 import { networkErrorToast, useActionFeedback } from "@/components/admin/action-feedback"
-import { ConfirmDelete } from "@/components/admin/confirm-delete"
+import { ConfirmAction, ConfirmDelete } from "@/components/admin/confirm-delete"
 import { ProductStatusBadge } from "@/components/admin/product-status"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -14,39 +14,126 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import type { AdminProductListItem } from "@/lib/data/admin"
 import { formatPrice } from "@/lib/format"
 
-const HEAD = "h-12 px-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase sm:px-4"
+const HEAD = "h-10 px-3 text-[11px] font-medium tracking-wide text-muted-foreground uppercase sm:px-4"
 
-export function ProductsTable({ products }: { products: AdminProductListItem[] }) {
+export function ProductsTable({
+  products,
+  onEdit,
+  onPrefetch,
+  footer,
+}: {
+  products: AdminProductListItem[]
+  /** Abre o modal de edição do produto. */
+  onEdit: (id: string) => void
+  /** Começa a carregar os dados de edição (ao passar o mouse), para o modal abrir sem espera. */
+  onPrefetch?: (id: string) => void
+  /** Rodapé do cartão (paginação). */
+  footer?: React.ReactNode
+}) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10">
+    <div className="overflow-hidden rounded-lg bg-card shadow-panel">
       <Table>
-        <TableHeader className="bg-muted/40">
+        <TableHeader className="[&_tr]:border-border/60">
           <TableRow className="hover:bg-transparent">
             <TableHead className={HEAD}>Produto</TableHead>
-            <TableHead className={`${HEAD} hidden md:table-cell`}>Categoria</TableHead>
+            <TableHead className={`${HEAD} hidden lg:table-cell`}>Situação</TableHead>
+            <TableHead className={`${HEAD} hidden text-center md:table-cell`} title="Pessoas que adicionaram o produto ao carrinho">
+              Intenções
+            </TableHead>
             <TableHead className={`${HEAD} hidden text-right md:table-cell`}>Preço</TableHead>
-            <TableHead className={HEAD}>Ativo</TableHead>
-            <TableHead className={`${HEAD} hidden sm:table-cell`}>Disponível</TableHead>
-            <TableHead className={`${HEAD} text-right`}>
+            <TableHead className={`${HEAD} text-center`}>Ativo</TableHead>
+            <TableHead className={`${HEAD} w-0`}>
               <span className="sr-only">Ações</span>
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {products.map((product) => (
-            <ProductRow key={product.id} product={product} />
+            <ProductRow key={product.id} product={product} onEdit={onEdit} onPrefetch={onPrefetch} />
           ))}
         </TableBody>
       </Table>
+      {footer}
     </div>
   )
 }
 
-function ProductRow({ product }: { product: AdminProductListItem }) {
+/** Rodapé da tabela: faixa exibida e navegação entre páginas, mantendo os filtros. */
+export function TablePagination({
+  page,
+  pageCount,
+  total,
+  from,
+  to,
+  onPage,
+  noun = ["produto", "produtos"],
+}: {
+  page: number
+  pageCount: number
+  total: number
+  from: number
+  to: number
+  onPage: (page: number) => void
+  /** Nome do item no singular e no plural, para o total ("3 produtos"). */
+  noun?: [string, string]
+}) {
+  return (
+    <nav
+      aria-label="Paginação"
+      className="flex items-center justify-between gap-3 border-t border-border/60 px-3 py-2.5 text-xs text-muted-foreground sm:px-4"
+    >
+      <span className="tabular-nums">
+        {from}–{to} de {total} {total === 1 ? noun[0] : noun[1]}
+      </span>
+      {pageCount > 1 ? (
+        <div className="flex items-center gap-1">
+          <PageButton disabled={page <= 1} onClick={() => onPage(page - 1)} label="Página anterior">
+            <HiChevronLeft className="size-4" aria-hidden />
+          </PageButton>
+          <span className="min-w-20 text-center tabular-nums" aria-current="page">
+            {page} de {pageCount}
+          </span>
+          <PageButton disabled={page >= pageCount} onClick={() => onPage(page + 1)} label="Próxima página">
+            <HiChevronRight className="size-4" aria-hidden />
+          </PageButton>
+        </div>
+      ) : null}
+    </nav>
+  )
+}
+
+function PageButton({
+  disabled,
+  onClick,
+  label,
+  children,
+}: {
+  disabled: boolean
+  onClick: () => void
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <Button type="button" variant="ghost" size="icon" className="size-8" disabled={disabled} onClick={onClick} aria-label={label}>
+      {children}
+    </Button>
+  )
+}
+
+function ProductRow({
+  product,
+  onEdit,
+  onPrefetch,
+}: {
+  product: AdminProductListItem
+  onEdit: (id: string) => void
+  onPrefetch?: (id: string) => void
+}) {
   const feedback = useActionFeedback()
+  const edit = () => onEdit(product.id)
   const [isPending, startTransition] = useTransition()
 
-  const toggle = (flag: "is_active" | "is_available", value: boolean) =>
+  const toggle = (flag: "is_active", value: boolean) =>
     startTransition(async () => {
       try {
         feedback(await setProductFlag(product.id, flag, value))
@@ -54,6 +141,17 @@ function ProductRow({ product }: { product: AdminProductListItem }) {
         networkErrorToast()
       }
     })
+
+  // Ativar é imediato; desativar tira o produto da loja, então pede confirmação.
+  const [confirmingOff, setConfirmingOff] = useState(false)
+  const deactivate = async () => {
+    try {
+      return feedback(await setProductFlag(product.id, "is_active", false))
+    } catch {
+      networkErrorToast()
+      return false
+    }
+  }
 
   const remove = async () => {
     try {
@@ -65,71 +163,106 @@ function ProductRow({ product }: { product: AdminProductListItem }) {
   }
 
   return (
-    <TableRow className="h-20">
-      <TableCell className="px-2 sm:px-4">
-        <div className="flex items-center gap-3 sm:min-w-56 sm:gap-4">
-          <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted sm:size-14">
+    <TableRow
+      className="group cursor-pointer border-border/60 transition-colors hover:bg-muted/40"
+      onPointerEnter={() => onPrefetch?.(product.id)}
+      onClick={(event) => {
+        // Clicar na linha abre a edição; botões, links, o interruptor e o modal de exclusão (portal) não.
+        const target = event.target as HTMLElement
+        if (!event.currentTarget.contains(target) || target.closest("a, button, input, [role=switch]")) return
+        edit()
+      }}
+    >
+      {/* w-full + max-w-0: a coluna do produto ocupa o espaço que sobra e o nome é cortado, sem rolagem lateral. */}
+      <TableCell className="w-full max-w-0 px-3 py-3 sm:px-4">
+        <div className="flex items-center gap-3">
+          <span
+            aria-hidden
+            className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted"
+          >
             {product.image?.url ? (
-              <Image src={product.image.url} alt="" fill sizes="56px" className="object-cover" />
+              <Image src={product.image.url} alt="" fill sizes="48px" className="object-cover" />
             ) : (
-              <HiOutlinePhoto className="size-6 text-muted-foreground" aria-hidden />
+              <HiOutlinePhoto className="size-5 text-muted-foreground" />
             )}
-          </div>
+          </span>
           <div className="min-w-0">
-            <Link href={`/admin/produtos/${product.id}`} className="line-clamp-2 font-semibold hover:text-gold">
-              {product.name}
-            </Link>
-            <span className="mt-0.5 block text-sm font-semibold tabular-nums md:hidden">
-              {formatPrice(product.price_cents)}
-            </span>
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <ProductStatusBadge product={product} />
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={edit}
+                className="truncate rounded-sm text-left font-medium transition-colors outline-none hover:text-gold focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {product.name}
+              </button>
               {product.is_featured ? (
-                <span className="rounded-full bg-gold/15 px-2.5 py-0.5 text-xs font-medium text-gold">Destaque</span>
-              ) : null}
-              {!product.image ? (
-                <span className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive">
-                  Sem imagem
-                </span>
+                <HiStar className="size-3.5 shrink-0 text-gold" aria-label="Destaque" role="img" />
               ) : null}
             </div>
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+              <span className="max-w-full truncate">{product.category?.name ?? "Sem categoria"}</span>
+              <span className="font-medium text-foreground tabular-nums md:hidden">{formatPrice(product.price_cents)}</span>
+              {!product.image ? <span className="text-destructive">Sem foto</span> : null}
+            </p>
+            <ProductStatusBadge product={product} className="mt-1.5 lg:hidden" />
           </div>
         </div>
       </TableCell>
-      <TableCell className="hidden px-4 text-muted-foreground md:table-cell">{product.category?.name ?? "—"}</TableCell>
-      <TableCell className="hidden px-4 text-right font-semibold tabular-nums md:table-cell">
+      <TableCell className="hidden px-4 lg:table-cell">
+        <ProductStatusBadge product={product} />
+      </TableCell>
+      <TableCell className="hidden px-4 text-center tabular-nums md:table-cell">
+        <span
+          title={`${product.cartIntents} ${product.cartIntents === 1 ? "pessoa adicionou" : "pessoas adicionaram"} ao carrinho`}
+          className={product.cartIntents > 0 ? "font-medium" : "text-muted-foreground"}
+        >
+          {product.cartIntents}
+        </span>
+      </TableCell>
+      <TableCell className="hidden px-4 text-right font-medium tabular-nums md:table-cell">
         {formatPrice(product.price_cents)}
       </TableCell>
-      <TableCell className="px-2 sm:px-4">
+      <TableCell className="px-3 text-center sm:px-4">
         <Switch
           checked={product.is_active}
           disabled={isPending}
-          onCheckedChange={(value) => toggle("is_active", value)}
+          onCheckedChange={(value) => (value ? toggle("is_active", true) : setConfirmingOff(true))}
           aria-label={`${product.is_active ? "Desativar" : "Ativar"} ${product.name}`}
         />
-      </TableCell>
-      <TableCell className="hidden px-4 sm:table-cell">
-        <Switch
-          checked={product.is_available}
-          disabled={isPending}
-          onCheckedChange={(value) => toggle("is_available", value)}
-          aria-label={`Marcar ${product.name} como ${product.is_available ? "indisponível" : "disponível"}`}
+        <ConfirmAction
+          open={confirmingOff}
+          onOpenChange={setConfirmingOff}
+          icon={HiOutlineEyeSlash}
+          tone="warning"
+          title="Desativar produto?"
+          description={
+            <>
+              <strong className="font-medium text-foreground">{product.name}</strong> sai da loja até ser ativado de novo. Ele
+              continua no painel, com fotos e dados.
+            </>
+          }
+          confirmLabel="Desativar"
+          pendingLabel="Desativando…"
+          onConfirm={deactivate}
         />
       </TableCell>
-      <TableCell className="px-2 text-right sm:px-4">
-        <div className="flex justify-end gap-0.5 sm:gap-1">
-          <Button asChild variant="ghost" size="icon">
-            <Link href={`/admin/produtos/${product.id}`} aria-label={`Editar ${product.name}`}>
-              <HiOutlinePencilSquare className="size-5" aria-hidden />
-            </Link>
+      <TableCell className="px-2 sm:px-3">
+        <div className="flex justify-end gap-0.5 whitespace-nowrap opacity-100 transition-opacity sm:opacity-60 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
+          <Button type="button" variant="ghost" size="icon" className="size-8" onClick={edit} aria-label={`Editar ${product.name}`}>
+            <MdEdit className="size-4" aria-hidden />
           </Button>
           <ConfirmDelete
-            title={`Excluir “${product.name}”?`}
-            description="O produto e todas as suas imagens serão excluídos permanentemente. Para apenas ocultá-lo da loja, desative-o."
+            title="Excluir produto?"
+            description={<><strong className="font-medium text-foreground">{product.name}</strong> e as fotos serão apagados de vez. Para só ocultar da loja, desative-o.</>}
             onConfirm={remove}
             trigger={
-              <Button variant="ghost" size="icon" aria-label={`Excluir ${product.name}`}>
-                <HiOutlineTrash className="size-5" aria-hidden />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 hover:bg-destructive/10 hover:text-destructive"
+                aria-label={`Excluir ${product.name}`}
+              >
+                <HiOutlineTrash className="size-4" aria-hidden />
               </Button>
             }
           />

@@ -10,14 +10,6 @@ import { CATALOG_SORTS, type CatalogQuery, type CatalogSort } from "@/types/cata
 
 export const uuidSchema = z.uuid({ message: "Identificador inválido." })
 
-const slugField = (max: number) =>
-  z
-    .string()
-    .trim()
-    .min(1, "Informe o slug.")
-    .max(max, `O slug pode ter no máximo ${max} caracteres.`)
-    .regex(SLUG_PATTERN, "Use apenas letras minúsculas, números e hífens (ex.: vaso-geometrico).")
-
 /** Aceita tanto o texto digitado ("19,90") quanto um número de centavos. */
 const priceField = z.union([z.string(), z.number()]).transform((value, ctx) => {
   const cents = typeof value === "number" ? value : parsePriceToCents(value)
@@ -51,7 +43,7 @@ export const categorySchema = z.object({
     .trim()
     .min(1, "Informe o nome da categoria.")
     .max(80, "O nome pode ter no máximo 80 caracteres."),
-  slug: slugField(100),
+  // O slug não vem do formulário: o servidor gera a partir do nome na criação.
   isActive: z.boolean(),
 })
 
@@ -67,8 +59,9 @@ export const productSchema = z.object({
     .trim()
     .min(1, "Informe o nome do produto.")
     .max(120, "O nome pode ter no máximo 120 caracteres."),
-  slug: slugField(140),
+  // O slug não vem do formulário: o servidor gera a partir do nome (ver actions/products.ts).
   description: z.string().trim().max(5000, "A descrição pode ter no máximo 5000 caracteres."),
+  internalNotes: z.string().trim().max(2000, "A anotação pode ter no máximo 2000 caracteres.").default(""),
   price: priceField,
   categoryId: z.string().min(1, "Selecione uma categoria.").pipe(uuidSchema),
   isActive: z.boolean(),

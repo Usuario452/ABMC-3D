@@ -16,7 +16,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
       gap={10}
       visibleToasts={4}
       closeButton
-      className="toaster group"
+      // Com um modal aberto, o Radix bloqueia cliques no resto da página; os toasts continuam clicáveis.
+      className="toaster group pointer-events-auto"
       icons={{
         success: <HiCheckCircle className="size-5" />,
         info: <HiInformationCircle className="size-5" />,
