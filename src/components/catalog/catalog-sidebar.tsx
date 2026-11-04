@@ -1,8 +1,7 @@
 import Form from "next/form"
 import Link from "next/link"
 import type { ReactNode } from "react"
-import { HiArrowRight, HiCheck, HiOutlineAdjustmentsHorizontal, HiOutlineSparkles, HiOutlineStar } from "react-icons/hi2"
-import type { IconType } from "react-icons"
+import { HiArrowRight, HiCheck, HiOutlineAdjustmentsHorizontal } from "react-icons/hi2"
 import { CatalogSort } from "@/components/catalog/catalog-sort"
 import { buildCatalogHref } from "@/lib/catalog-url"
 import { countActiveFilters, priceRangeLabel } from "@/lib/catalog-filters"
@@ -10,8 +9,8 @@ import { cn } from "@/lib/utils"
 import type { CatalogFacets, CatalogQuery } from "@/types/catalog"
 
 /**
- * Coluna de filtros do catálogo (no estilo do Mercado Livre): ordenação, categorias, faixas de preço com
- * mínimo e máximo, destaques e novidades, cada opção com a quantidade de produtos que traria. Seções
+ * Coluna de filtros do catálogo (no estilo do Mercado Livre): ordenação, categorias, faixas de preço e
+ * mínimo e máximo, cada opção com a quantidade de produtos que traria. Seções
  * separadas por linhas finas; opções em linhas com fundo no hover e a escolhida em dourado claro. Tudo são
  * links (ou um formulário GET), então funciona sem JavaScript e cada combinação tem a própria URL.
  */
@@ -158,28 +157,6 @@ export function CatalogSidebar({
           ) : null}
         </FilterSection>
 
-        <FilterSection title="Mais filtros">
-          <ul className="-mx-2 space-y-0.5">
-            <li>
-              <ToggleLink
-                href={href({ featured: !query.featured })}
-                checked={query.featured}
-                count={facets.featured}
-                label="Destaques"
-                icon={HiOutlineStar}
-              />
-            </li>
-            <li>
-              <ToggleLink
-                href={href({ recent: !query.recent })}
-                checked={query.recent}
-                count={facets.recent}
-                label="Novidades"
-                icon={HiOutlineSparkles}
-              />
-            </li>
-          </ul>
-        </FilterSection>
       </div>
     </div>
   )
@@ -246,63 +223,6 @@ function OptionLink({
       <span className="min-w-0 flex-1 truncate">{children}</span>
       {selected ? <HiCheck className="size-4 shrink-0 text-gold" aria-hidden /> : null}
       <Count value={count} active={selected} />
-    </Link>
-  )
-}
-
-/** Opção liga/desliga: ícone, nome, quantidade e uma chave à direita (é um link, não um checkbox de formulário). */
-function ToggleLink({
-  href,
-  checked,
-  count,
-  label,
-  icon: Icon,
-}: {
-  href: string
-  checked: boolean
-  count: number
-  label: string
-  icon: IconType
-}) {
-  const disabled = count === 0 && !checked
-  const content = (
-    <>
-      <Icon className={cn("size-4 shrink-0", checked ? "text-gold" : "text-muted-foreground")} aria-hidden />
-      <span className="min-w-0 flex-1">{label}</span>
-      <Count value={count} active={checked} />
-      <span
-        aria-hidden
-        className={cn(
-          "relative h-5 w-8 shrink-0 rounded-full transition-colors",
-          checked ? "bg-gold" : "bg-input",
-        )}
-      >
-        <span
-          className={cn(
-            "absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-[left]",
-            checked ? "left-3.5" : "left-0.5",
-          )}
-        />
-      </span>
-    </>
-  )
-
-  if (disabled) {
-    return <span className="flex h-9 items-center gap-2.5 px-2 text-muted-foreground/50 [&_*]:opacity-70">{content}</span>
-  }
-  return (
-    <Link
-      href={href}
-      scroll={false}
-      role="switch"
-      aria-checked={checked}
-      aria-label={`${label} (${count})`}
-      className={cn(
-        "flex h-9 items-center gap-2.5 rounded-lg px-2 transition-colors",
-        checked ? "font-medium text-foreground" : "text-foreground/80 hover:bg-muted hover:text-foreground",
-      )}
-    >
-      {content}
     </Link>
   )
 }
