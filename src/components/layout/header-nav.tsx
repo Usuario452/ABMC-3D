@@ -62,6 +62,8 @@ export function HeaderCategories({ categories }: { categories: CategorySummary[]
       <PopoverContent
         align="center"
         sideOffset={8}
+        // No celular ocupa a largura da tela (com folga de 8px de cada lado) e fica centralizado.
+        collisionPadding={8}
         onOpenAutoFocus={(event) => event.preventDefault()}
         onPointerEnter={(event) => {
           if (isMouse(event)) cancelClose()
@@ -72,11 +74,11 @@ export function HeaderCategories({ categories }: { categories: CategorySummary[]
         // Mesmo vidro escuro da barra do cabeçalho.
         className={cn(
           "rounded-2xl border border-white/10 bg-[#0b0a08]/60 p-2 text-white shadow-2xl shadow-black/40 ring-0 backdrop-blur-xl backdrop-saturate-150",
-          "w-max max-w-[min(36rem,calc(100vw-2rem))]",
+          "w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] sm:w-max sm:max-w-[min(36rem,calc(100vw-2rem))]",
         )}
       >
         {/* Links simples (brancos, dourados ao passar o mouse), com a seta inclinada no fim; o catálogo completo é mais um item da lista. */}
-        <ul className="grid grid-cols-[repeat(2,max-content)] gap-x-4">
+        <ul className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-x-2 sm:grid-cols-[repeat(2,max-content)] sm:gap-x-4">
           {[
             ...categories.map((category) => ({
               key: category.id,

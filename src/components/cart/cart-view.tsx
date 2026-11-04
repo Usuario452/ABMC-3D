@@ -5,7 +5,6 @@ import Link from "next/link"
 import { useEffect, useState, useTransition } from "react"
 import { FaWhatsapp } from "react-icons/fa6"
 import { HiOutlinePhoto, HiOutlineShoppingBag, HiOutlineTrash } from "react-icons/hi2"
-import { toast } from "sonner"
 import { checkCart, createWhatsAppOrder, type CartCheck } from "@/actions/cart"
 import { QuantityInput } from "@/components/cart/quantity-input"
 import { StateMessage } from "@/components/shared/state-message"
@@ -71,62 +70,6 @@ function useCartSync(items: CartItem[], hydrated: boolean) {
   return [state, update] as const
 }
 
-const TOAST_UNAVAILABLE = "carrinho-indisponiveis"
-const TOAST_PRICES = "carrinho-precos"
-const TOAST_SYNC_ERROR = "carrinho-verificacao"
-
-/** Avisos do carrinho como toasts: itens indisponíveis, preços atualizados e falha na verificação. */
-function useCartToasts(sync: SyncState) {
-  const unavailableKey = sync.status === "ok" ? [...sync.unavailable].sort().join(",") : ""
-  const priceChanged = sync.status === "ok" && sync.priceChanged
-  const errorMessage = sync.status === "error" ? sync.message : ""
-  const errorIsConfig = sync.status === "error" && sync.isConfig
-
-  useEffect(() => {
-    if (!unavailableKey) return
-    const ids = new Set(unavailableKey.split(","))
-    toast.error("Alguns produtos não estão mais disponíveis", {
-      id: TOAST_UNAVAILABLE,
-      description: "Foram removidos do catálogo ou estão indisponíveis e não entram no pedido.",
-      duration: Infinity,
-      action: {
-        label: "Remover indisponíveis",
-        // A lista de produtos muda e o carrinho é revalidado automaticamente.
-        onClick: () => setCartItems((current) => current.filter((item) => !ids.has(item.productId))),
-      },
-    })
-    return () => {
-      toast.dismiss(TOAST_UNAVAILABLE)
-    }
-  }, [unavailableKey])
-
-  useEffect(() => {
-    if (!priceChanged) return
-    toast.info("Preços atualizados", {
-      id: TOAST_PRICES,
-      description: "Alguns valores mudaram desde que você adicionou os produtos.",
-    })
-    return () => {
-      toast.dismiss(TOAST_PRICES)
-    }
-  }, [priceChanged])
-
-  useEffect(() => {
-    if (!errorMessage) return
-    if (errorIsConfig) {
-      toast.warning("Configuração pendente", { id: TOAST_SYNC_ERROR, description: errorMessage, duration: Infinity })
-    } else {
-      toast.warning("Não foi possível verificar os preços", {
-        id: TOAST_SYNC_ERROR,
-        description: `${errorMessage} Os valores serão conferidos novamente ao finalizar.`,
-      })
-    }
-    return () => {
-      toast.dismiss(TOAST_SYNC_ERROR)
-    }
-  }, [errorMessage, errorIsConfig])
-}
-
 /** Atualiza os itens salvos com preços/nomes do servidor e retorna o estado de sincronização. */
 function applyCheck(check: CartCheck): SyncState {
   let priceChanged = false
@@ -152,7 +95,8 @@ export function CartView({ onNavigate }: { onNavigate?: () => void }) {
   const [sync, setSync] = useCartSync(items, hydrated)
   const [isSubmitting, startSubmit] = useTransition()
   const whatsappReady = getWhatsAppConfig().ok
-  useCartToasts(sync)
+  // Sem toasts na loja: problemas ao gerar o pedido aparecem numa linha discreta no rodapé.
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
   if (!hydrated) {
     return (
@@ -190,9 +134,10 @@ export function CartView({ onNavigate }: { onNavigate?: () => void }) {
 
   const handleCheckout = () => {
     if (!whatsappReady) {
-      toast.error("O número de WhatsApp da loja ainda não foi configurado.")
+      setCheckoutError("O número de WhatsApp da loja ainda não foi configurado.")
       return
     }
+    setCheckoutError(null)
     // Abre a janela já no clique (evita bloqueio de pop-up) e define o endereço depois.
     const popup = window.open("", "_blank")
     startSubmit(async () => {
@@ -200,15 +145,10 @@ export function CartView({ onNavigate }: { onNavigate?: () => void }) {
         const result = await createWhatsAppOrder(toCartRequest(items), getVisitorIds().sessionId)
         if (!result.ok) {
           popup?.close()
-          toast.error(result.error)
+          setCheckoutError(result.error)
           return
         }
-        const check = result.data.check
-        const state = applyCheck(check)
-        setSync(state)
-        if (state.status === "ok" && state.priceChanged) {
-          toast.info("Alguns preços foram atualizados. O pedido usa os valores atuais.", { id: TOAST_PRICES })
-        }
+        setSync(applyCheck(result.data.check))
         if (popup) {
           popup.opener = null
           popup.location.href = result.data.url
@@ -217,14 +157,12 @@ export function CartView({ onNavigate }: { onNavigate?: () => void }) {
         }
       } catch {
         popup?.close()
-        toast.error("Não foi possível gerar o pedido. Verifique sua conexão e tente novamente.")
+        setCheckoutError("Não foi possível gerar o pedido. Verifique sua conexão e tente novamente.")
       }
     })
   }
 
   const itemCount = availableItems.reduce((sum, item) => sum + item.quantity, 0)
-  const removeUnavailable = () =>
-    setCartItems((current) => current.filter((item) => !unavailable.has(item.productId)))
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -240,18 +178,6 @@ export function CartView({ onNavigate }: { onNavigate?: () => void }) {
       </ul>
 
       <footer className="space-y-3 border-t border-border px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        {hasUnavailable ? (
-          <div className="flex items-center justify-between gap-3 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
-            <span>Há itens indisponíveis no carrinho.</span>
-            <button
-              type="button"
-              onClick={removeUnavailable}
-              className="shrink-0 cursor-pointer font-semibold underline-offset-4 hover:underline"
-            >
-              Remover
-            </button>
-          </div>
-        ) : null}
         <div className="flex items-baseline justify-between">
           <span className="text-sm text-muted-foreground">
             Total{itemCount > 0 ? ` · ${itemCount === 1 ? "1 item" : `${itemCount} itens`}` : ""}
@@ -263,19 +189,20 @@ export function CartView({ onNavigate }: { onNavigate?: () => void }) {
         <Button
           className="h-11 w-full rounded-full"
           onClick={handleCheckout}
-          disabled={
-            !whatsappReady ||
-            isSubmitting ||
-            sync.status === "checking" ||
-            hasUnavailable ||
-            availableItems.length === 0
-          }
+          // Itens indisponíveis só ficam marcados na lista e não entram no pedido; o resto segue normalmente.
+          disabled={!whatsappReady || isSubmitting || sync.status === "checking" || availableItems.length === 0}
         >
           <FaWhatsapp className="size-5" aria-hidden />
           {isSubmitting ? "Gerando pedido…" : "Finalizar pelo WhatsApp"}
         </Button>
+        {checkoutError ? (
+          <p className="text-center text-xs text-destructive" role="alert">
+            {checkoutError}
+          </p>
+        ) : null}
         <p className="text-center text-[11px] leading-snug text-muted-foreground">
           {whatsappReady ? null : "O WhatsApp da loja ainda não foi configurado. "}
+          {hasUnavailable ? "Itens indisponíveis não entram no pedido. " : null}
           {siteConfig.texts.orderDisclaimer}
         </p>
       </footer>
@@ -330,7 +257,7 @@ function CartLine({
             </Link>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {unavailable ? (
-                <span className="font-medium text-destructive">Indisponível</span>
+                <span className="font-medium text-destructive">Indisponível · não entra no pedido</span>
               ) : (
                 `${formatPrice(item.unitPriceCents)} cada`
               )}

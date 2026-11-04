@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { HiOutlineExclamationTriangle } from "react-icons/hi2"
-import { ConfigToast } from "@/components/shared/config-toast"
 import { StateMessage } from "@/components/shared/state-message"
 import { Button } from "@/components/ui/button"
 import type { LoadResult } from "@/lib/data/load"
@@ -9,14 +8,11 @@ import type { LoadResult } from "@/lib/data/load"
 export function LoadError({ result, retryHref }: { result: Exclude<LoadResult<unknown>, { ok: true }>; retryHref: string }) {
   if (result.kind === "config") {
     return (
-      <>
-        <ConfigToast issues={result.issues} />
-        <StateMessage
-          icon={HiOutlineExclamationTriangle}
-          title="Catálogo indisponível"
-          description="A loja ainda não foi configurada. Tente novamente em instantes."
-        />
-      </>
+      <StateMessage
+        icon={HiOutlineExclamationTriangle}
+        title="Catálogo indisponível"
+        description="A loja ainda não foi configurada. Tente novamente em instantes."
+      />
     )
   }
 

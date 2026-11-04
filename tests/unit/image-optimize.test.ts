@@ -38,6 +38,25 @@ describe("optimizeProductImage", () => {
     expect(meta.exif).toBeUndefined()
   })
 
+  it("guarda como veio um WebP já pronto (sem recomprimir)", async () => {
+    const webp = await noise(800, 600, 3).webp({ quality: 90 }).toBuffer()
+    const result = await optimizeProductImage(new Uint8Array(webp))
+
+    expect(Buffer.from(result.bytes).equals(webp)).toBe(true)
+    expect([result.width, result.height]).toEqual([800, 600])
+  })
+
+  it("recomprime WebP grande demais ou com metadados de câmera", async () => {
+    const big = await noise(2400, 1200, 3).webp({ quality: 90 }).toBuffer()
+    const resized = await optimizeProductImage(new Uint8Array(big))
+    expect(resized.width).toBe(STORED_MAX_DIMENSION)
+
+    const withExif = await noise(300, 200, 3).webp().withMetadata({ orientation: 6 }).toBuffer()
+    const cleaned = await sharp((await optimizeProductImage(new Uint8Array(withExif))).bytes).metadata()
+    expect([cleaned.width, cleaned.height]).toEqual([200, 300])
+    expect(cleaned.exif).toBeUndefined()
+  })
+
   it("rejeita arquivos corrompidos", async () => {
     await expect(optimizeProductImage(new Uint8Array([0xff, 0xd8, 0xff, 0x00]))).rejects.toThrow()
   })

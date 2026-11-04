@@ -26,7 +26,8 @@ import {
 } from "react-icons/hi2"
 import type { IconType } from "react-icons"
 import { toast } from "sonner"
-import { deleteProductImage, registerProductImages, reorderProductImages, storeProductImage } from "@/actions/images"
+import type { ActionResult } from "@/lib/actions/result"
+import { deleteProductImage, registerProductImages, reorderProductImages } from "@/actions/images"
 import { importFromMakerWorld } from "@/actions/makerworld"
 import { createProduct, deleteProduct, updateProduct } from "@/actions/products"
 import { networkErrorToast, useActionFeedback } from "@/components/admin/action-feedback"
@@ -178,7 +179,9 @@ export function ProductDialog({
         formData.set("file", prepared.file)
       }
       try {
-        const result = await storeProductImage(formData)
+        // Rota HTTP (não Server Action) para os envios rodarem de fato em paralelo.
+        const response = await fetch("/api/admin/product-images", { method: "POST", body: formData })
+        const result = (await response.json()) as ActionResult<{ storagePath: string }>
         if (result.ok) stored[index] = result.data.storagePath
         else if (!feedback(result) && result.code === "unauthenticated") stop = true
       } catch {

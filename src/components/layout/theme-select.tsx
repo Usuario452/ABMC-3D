@@ -25,6 +25,10 @@ function changeTheme(next: Theme, apply: (theme: Theme) => void) {
   doc.startViewTransition(() => apply(next))
 }
 
+/** Opção do menu: texto branco, dourado no hover/foco (como os links de categoria); o check fica dourado. */
+const ITEM =
+  "gap-2 rounded-lg px-3 py-2 font-medium text-white/90 focus:bg-white/10 focus:text-primary focus:**:text-primary [&_[data-slot=dropdown-menu-radio-item-indicator]]:text-primary"
+
 /**
  * Seletor de tema do cabeçalho da loja: o ícone (sol no claro, lua no escuro) abre um menu com "Claro" e
  * "Escuro". Os dois ícones ficam sobrepostos e trocam girando e mudando de escala; quem aparece vem do CSS
@@ -49,20 +53,21 @@ export function ThemeSelect() {
           aria-hidden
         />
       </DropdownMenuTrigger>
+      {/* Mesmo vidro escuro do menu de categorias e da barra do cabeçalho. */}
       <DropdownMenuContent
         align="end"
         sideOffset={10}
-        className="min-w-40 rounded-xl p-1.5 shadow-xl duration-200 ease-out"
+        className="min-w-40 rounded-2xl border-white/10 bg-[#0b0a08]/60 p-2 text-white shadow-2xl shadow-black/40 backdrop-blur-xl backdrop-saturate-150 duration-200 ease-out"
       >
-        <DropdownMenuLabel className="px-2 pt-1 pb-1.5 text-[0.7rem] font-semibold tracking-wide text-muted-foreground uppercase">
+        <DropdownMenuLabel className="px-3 pt-1 pb-1.5 text-[0.7rem] font-semibold tracking-wide text-white/50 uppercase">
           Tema
         </DropdownMenuLabel>
         <DropdownMenuRadioGroup value={theme} onValueChange={(value) => changeTheme(value as Theme, setTheme)}>
-          <DropdownMenuRadioItem value="light" className="gap-2 rounded-lg py-2 transition-colors">
+          <DropdownMenuRadioItem value="light" className={ITEM}>
             <HiOutlineSun className="size-4" aria-hidden />
             Claro
           </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="dark" className="gap-2 rounded-lg py-2 transition-colors">
+          <DropdownMenuRadioItem value="dark" className={ITEM}>
             <HiOutlineMoon className="size-4" aria-hidden />
             Escuro
           </DropdownMenuRadioItem>

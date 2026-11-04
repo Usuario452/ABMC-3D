@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi2"
 import { cn } from "@/lib/utils"
 
@@ -58,9 +58,10 @@ export function ScrollRow({ label, children }: { label: string; children: ReactN
       <ul
         ref={trackRef}
         aria-label={label}
-        // Esmaece suave ao longo da margem (onde há itens escondidos), com uma curva de várias paradas.
-        style={{ maskImage: `linear-gradient(to right, ${fade(edges.start, "left")}, ${fade(edges.end, "right")})` }}
-        className="flex snap-x snap-mandatory scroll-px-4 gap-1.5 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:scroll-px-6 sm:px-6 lg:scroll-px-10 lg:px-10 [&::-webkit-scrollbar]:hidden"
+        // Do tablet para cima, esmaece suave ao longo da margem (onde há itens escondidos). No celular não: a
+        // máscara cobriria boa parte da tela; lá o trilho vai até a borda e o card cortado indica que rola.
+        style={{ "--row-mask": `linear-gradient(to right, ${fade(edges.start, "left")}, ${fade(edges.end, "right")})` } as CSSProperties}
+        className="flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:scroll-px-6 sm:gap-1.5 sm:px-6 sm:[mask-image:var(--row-mask)] lg:scroll-px-10 lg:px-10 [&::-webkit-scrollbar]:hidden"
       >
         {children}
       </ul>

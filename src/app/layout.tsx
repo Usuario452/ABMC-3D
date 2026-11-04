@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next"
 import { Montserrat } from "next/font/google"
-import { Toaster } from "@/components/ui/sonner"
 import { siteConfig } from "@/config/site"
 import { THEME_INIT_SCRIPT } from "@/lib/theme-init"
 import { getSiteUrl } from "@/lib/env"
@@ -49,7 +48,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="flex min-h-full flex-col">
         {children}
-        <Toaster />
       </body>
     </html>
   )

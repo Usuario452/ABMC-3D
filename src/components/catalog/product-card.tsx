@@ -9,7 +9,7 @@ import type { ProductCardData } from "@/types/catalog"
 /**
  * Card de produto das grades: sem borda, com sombra limpa; no hover o card inteiro sobe e a sombra cresce
  * (a foto não dá zoom). A foto fica num quadro arredondado por dentro do card; embaixo, categoria, nome e,
- * na mesma linha, o preço e o botão de adicionar ao carrinho. O link cobre o card todo, menos o botão.
+ * o preço e o botão de adicionar ao carrinho (lado a lado; no celular, o botão embaixo, na largura toda). O link cobre o card todo, menos o botão.
  */
 export function ProductCard({ product, preload = false }: { product: ProductCardData; preload?: boolean }) {
   return (
@@ -49,7 +49,7 @@ export function ProductCard({ product, preload = false }: { product: ProductCard
             {product.name}
           </Link>
         </h3>
-        <div className="mt-auto flex items-end justify-between gap-2 pt-3">
+        <div className="mt-auto flex flex-col gap-2.5 pt-3 sm:flex-row sm:items-end sm:justify-between sm:gap-2">
           <Price priceCents={product.priceCents} compareAtPriceCents={product.compareAtPriceCents} />
           {product.isAvailable ? (
             <QuickAdd
@@ -60,6 +60,7 @@ export function ProductCard({ product, preload = false }: { product: ProductCard
                 unitPriceCents: product.priceCents,
                 imageUrl: product.image?.url ?? null,
               }}
+              className="w-full sm:w-auto"
             />
           ) : null}
         </div>

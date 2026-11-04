@@ -1,19 +1,22 @@
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES, isAllowedImageType } from "@/lib/images"
 
 /**
- * Lado maior máximo enviado ao servidor. Fica acima do tamanho armazenado (1600 px)
- * para que o servidor faça a redução final com qualidade.
+ * Lado maior máximo enviado ao servidor. Fica um pouco acima do tamanho armazenado (1600 px), para o
+ * servidor fazer a redução final com qualidade, sem mandar mais bytes que o necessário.
  */
-const MAX_DIMENSION = 2400
-/** Qualidade alta: aqui só se reduz o tamanho do envio; a compressão final é feita no servidor. */
-const WEBP_QUALITY = 0.95
+const MAX_DIMENSION = 2000
+/**
+ * Qualidade alta: aqui só se reduz o tamanho do envio (fotos grandes); a compressão final é feita no
+ * servidor, depois de reduzir para 1600 px, então esta etapa não soma perda visível.
+ */
+const WEBP_QUALITY = 0.92
 /** Arquivos originais acima deste tamanho são recomprimidos para caber no limite de envio. */
 const RECOMPRESS_ABOVE_BYTES = 2 * 1024 * 1024
 
 export type PreparedImage = { ok: true; file: File } | { ok: false; error: string }
 
 /**
- * Valida e reduz a imagem no navegador antes do envio (no máximo 2400 px), para
+ * Valida e reduz a imagem no navegador antes do envio (no máximo 2000 px), para
  * agilizar o upload. O servidor valida tudo novamente e gera o WebP final.
  */
 export async function prepareImageForUpload(file: File): Promise<PreparedImage> {

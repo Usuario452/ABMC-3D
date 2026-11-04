@@ -50,6 +50,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: imageRemotePatterns(),
     formats: ["image/avif", "image/webp"],
+    // 75 é o padrão; 85 só na foto grande da galeria do produto (obrigatório listar no Next 16).
+    qualities: [75, 85],
     deviceSizes: [640, 828, 1080, 1280, 1920],
     imageSizes: [64, 128, 256, 384],
     minimumCacheTTL: 86400,

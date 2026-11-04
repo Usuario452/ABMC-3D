@@ -85,10 +85,8 @@ export async function createWhatsAppOrder(
   if (!result.ok) return result
 
   const check = result.data
-  if (check.lines.length === 0) return failure("Seu carrinho está vazio.")
-  if (check.unavailableIds.length > 0) {
-    return failure("Alguns itens não estão mais disponíveis. Remova-os para finalizar o pedido.")
-  }
+  // Itens indisponíveis não bloqueiam o pedido: ficam marcados no carrinho e não entram na mensagem.
+  if (check.lines.length === 0) return failure("Nenhum item do carrinho está disponível no momento.")
 
   // Conversão: o pedido é contado no servidor, com os preços do banco, depois da resposta.
   const session = uuidSchema.safeParse(sessionId)

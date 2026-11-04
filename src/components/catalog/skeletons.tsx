@@ -16,9 +16,9 @@ export function ProductGridSkeleton({
             <div className="space-y-2 px-2 pt-3 pb-1.5">
               <Skeleton className="h-3 w-1/3" />
               <Skeleton className="h-4 w-4/5" />
-              <div className="flex items-center justify-between pt-1">
-                <Skeleton className="h-6 w-1/3" />
-                <Skeleton className="h-8 w-16" />
+              <div className="flex flex-col gap-2.5 pt-1 sm:flex-row sm:items-center sm:justify-between">
+                <Skeleton className="h-6 w-1/2 sm:w-1/3" />
+                <Skeleton className="h-8 w-full sm:w-16" />
               </div>
             </div>
           </li>

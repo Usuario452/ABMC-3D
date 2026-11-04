@@ -45,6 +45,8 @@ export function ProductGallery({ images, productName }: { images: ProductImage[]
             fill
             fetchPriority={safeIndex === 0 ? "high" : undefined}
             loading="eager"
+            // Mais qualidade na foto grande (a que a pessoa examina); a lista no next.config permite 85.
+            quality={85}
             sizes="(min-width: 1024px) 580px, (min-width: 768px) 45vw, 100vw"
             className="object-cover"
           />

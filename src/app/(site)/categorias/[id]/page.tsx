@@ -31,6 +31,7 @@ import { buildCatalogHref, buildCategoryHref } from "@/lib/catalog-url"
 import { getCatalogPage, getCategoryById, type CategoryShowcase } from "@/lib/data/catalog"
 import { load } from "@/lib/data/load"
 import { isDatabaseConfigured } from "@/lib/env"
+import { cn } from "@/lib/utils"
 import { parseCatalogQuery, uuidSchema } from "@/lib/validation/schemas"
 import { getWhatsAppContactUrl } from "@/lib/whatsapp"
 import type { CatalogQuery } from "@/types/catalog"
@@ -212,11 +213,13 @@ async function CategoryProducts({ query, category }: { query: CatalogQuery; cate
 }
 
 /**
- * Topo da categoria: a foto da oficina (a mesma do hero da home) de ponta a ponta, desfocada e sob um véu escuro,
- * e por cima, à esquerda, a capa inteira em retrato (4:5) num card
+ * Topo da categoria. No celular/tablet, a própria capa é o fundo (pouco desfocada) e tudo fica centralizado.
+ * Do lg em diante, a foto da oficina (a mesma do hero da home) de ponta a ponta, desfocada e sob um véu
+ * escuro, e por cima, à esquerda, a capa inteira em retrato (4:5) num card
  * arredondado, com nome, descrição e a busca da categoria ao lado (embaixo, no celular). Sobe por baixo do cabeçalho estacionado.
  */
 function CategoryHero({ category, search }: { category: CategoryShowcase; search: string }) {
+  const hasCover = Boolean(category.coverUrl)
 
   return (
     <section
@@ -224,12 +227,39 @@ function CategoryHero({ category, search }: { category: CategoryShowcase; search
       className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#0a0907] text-white sm:-mt-20"
     >
       <HeaderPark />
-      <Image src="/hero/oficina-3d.webp" alt="" fill priority sizes="100vw" className="-z-20 scale-105 object-cover blur-md" />
-      <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-r from-black/85 via-black/65 to-black/35" />
+      {/* Fundo: no celular/tablet, a própria capa com pouco desfoque; do lg em diante (ou sem capa), a oficina. */}
+      {category.coverUrl ? (
+        <Image
+          src={category.coverUrl}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="-z-20 scale-105 object-cover blur-[2px] lg:hidden"
+        />
+      ) : null}
+      <Image
+        src="/hero/oficina-3d.webp"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className={cn("-z-20 scale-105 object-cover blur-md", hasCover && "hidden lg:block")}
+      />
+      {/* Véu: no celular, mais escuro embaixo (onde fica o texto); no desktop, mais escuro à esquerda. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-linear-to-b from-black/45 via-black/55 to-black/85 lg:hidden"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 hidden bg-linear-to-r from-black/85 via-black/65 to-black/35 lg:block"
+      />
 
-      <div className="page-container flex flex-col gap-7 pt-28 pb-12 sm:pt-32 lg:flex-row lg:items-center lg:gap-14 lg:pt-36 lg:pb-20">
+      <div className="page-container flex flex-col items-center gap-7 pt-32 pb-12 text-center sm:pt-36 lg:flex-row lg:items-center lg:gap-14 lg:pt-36 lg:pb-20 lg:text-left">
+        {/* Capa em card só do lg em diante (no celular ela é o fundo). */}
         {category.coverUrl ? (
-          <div className="relative aspect-[4/5] w-40 shrink-0 overflow-hidden rounded-3xl bg-white/5 shadow-[0_24px_60px_-20px_rgb(0_0_0/0.7)] ring-1 ring-white/15 sm:w-56 lg:w-[300px] xl:w-[340px]">
+          <div className="relative hidden aspect-[4/5] shrink-0 overflow-hidden rounded-3xl bg-white/5 shadow-[0_24px_60px_-20px_rgb(0_0_0/0.7)] ring-1 ring-white/15 lg:block lg:w-[300px] xl:w-[340px]">
             <Image
               src={category.coverUrl}
               alt=""
@@ -241,9 +271,9 @@ function CategoryHero({ category, search }: { category: CategoryShowcase; search
           </div>
         ) : null}
 
-        <div className="min-w-0">
+        <div className="flex min-w-0 flex-col items-center lg:items-start">
           <nav aria-label="Trilha de navegação" className="text-xs text-white/60 sm:text-sm">
-            <ol className="flex flex-wrap items-center gap-1">
+            <ol className="flex flex-wrap items-center justify-center gap-1 lg:justify-start">
               <li>
                 <Link href="/" className="transition-colors hover:text-white">
                   Início
@@ -276,7 +306,7 @@ function CategoryHero({ category, search }: { category: CategoryShowcase; search
             basePath={buildCategoryHref(category.id)}
             placeholder={`Buscar em ${category.name}`}
             initial={search}
-            className="mt-7"
+            className="mt-7 text-left"
           />
         </div>
       </div>
