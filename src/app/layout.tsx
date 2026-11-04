@@ -37,12 +37,12 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#080808",
-  colorScheme: "dark light",
+  colorScheme: "light dark",
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang={siteConfig.htmlLang} className={`${montserrat.variable} dark h-full`} suppressHydrationWarning>
+    <html lang={siteConfig.htmlLang} className={`${montserrat.variable} h-full`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>

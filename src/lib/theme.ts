@@ -4,7 +4,7 @@ import { THEME_STORAGE_KEY } from "@/lib/theme-init"
 /**
  * Tema do site (claro ou escuro), para componentes de cliente. A fonte da verdade é a classe
  * "dark" no <html>: o script de theme-init.ts a define antes da primeira pintura, a partir do
- * que foi salvo. Escuro é o padrão quando nada foi escolhido.
+ * que foi salvo. Claro é o padrão quando nada foi escolhido.
  */
 export type Theme = "light" | "dark"
 
@@ -32,6 +32,6 @@ export function setTheme(theme: Theme) {
 }
 
 export function useTheme() {
-  const theme = useSyncExternalStore(subscribe, getTheme, () => "dark" as Theme)
+  const theme = useSyncExternalStore(subscribe, getTheme, () => "light" as Theme)
   return [theme, setTheme] as const
 }
