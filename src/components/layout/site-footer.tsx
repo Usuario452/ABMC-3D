@@ -17,12 +17,12 @@ export function SiteFooter() {
   const whatsappUrl = getWhatsAppContactUrl()
 
   return (
-    <footer className="relative isolate mt-16 overflow-hidden bg-[#0b0a08] text-white">
+    <footer className="relative isolate mt-16 overflow-hidden bg-[#0a0a0b] text-white">
       {/* Fio dourado no topo e brilho suave descendo dele. */}
       <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/60 to-transparent" />
       <div
         aria-hidden
-        className="absolute inset-x-0 top-0 -z-10 h-96 bg-[radial-gradient(ellipse_50%_100%_at_50%_0%,rgb(239_195_38/0.14),transparent)]"
+        className="absolute inset-x-0 top-0 -z-10 h-96 bg-[radial-gradient(ellipse_50%_100%_at_50%_0%,rgb(185_190_197/0.14),transparent)]"
       />
       {/* Logo gigante ao fundo, cortado embaixo e esmaecendo para cima. */}
       <div

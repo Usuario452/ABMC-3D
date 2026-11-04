@@ -141,7 +141,7 @@ export function CatalogSidebar({
             <button
               type="submit"
               aria-label="Aplicar faixa de preço"
-              className="mr-1 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-gold text-black transition-colors hover:bg-gold-light focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+              className="mr-1 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-gold-light focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
             >
               <HiArrowRight className="size-4" aria-hidden />
             </button>
@@ -190,7 +190,7 @@ function Count({ value, active = false }: { value: number; active?: boolean }) {
     <span
       className={cn(
         "min-w-6 shrink-0 rounded-full px-1.5 text-center text-[0.7rem] leading-5 font-medium tabular-nums",
-        active ? "bg-gold text-black" : "bg-muted text-muted-foreground",
+        active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
       )}
     >
       {value}

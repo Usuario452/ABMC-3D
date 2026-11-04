@@ -10,8 +10,9 @@ const buttonVariants = cva(
       variant: {
         // Botão principal da marca: degradê dourado com brilho suave embaixo (mesmo estilo do login).
         default:
+          // Preto com texto branco no tema claro; branco com texto preto no escuro.
           // Hover: sobe um pouco, a sombra cresce e o ícone cresce; ao clicar, volta ao lugar.
-          "bg-gold-gradient bg-origin-border bg-clip-border font-semibold text-primary-foreground shadow-sm duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:brightness-105 active:not-aria-[haspopup]:translate-y-0 active:shadow-sm motion-reduce:hover:translate-y-0 [&_svg]:transition-transform [&_svg]:duration-300 hover:[&_svg]:scale-115 motion-reduce:hover:[&_svg]:transform-none",
+          "bg-neutral-950 font-semibold text-white shadow-sm hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200 duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:brightness-105 active:not-aria-[haspopup]:translate-y-0 active:shadow-sm motion-reduce:hover:translate-y-0 [&_svg]:transition-transform [&_svg]:duration-300 hover:[&_svg]:scale-115 motion-reduce:hover:[&_svg]:transform-none",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:

@@ -39,7 +39,7 @@ export default function CatalogPage({ searchParams }: PageProps<"/catalogo">) {
       />
       <section
         data-header-park
-        className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#0a0907] text-white sm:-mt-20"
+        className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#09090a] text-white sm:-mt-20"
       >
         <HeaderPark />
         <Image src="/hero/oficina-3d.webp" alt="" fill priority sizes="100vw" className="-z-20 scale-105 object-cover blur-md" />

@@ -31,7 +31,7 @@ export function HeaderShell({ children }: { children: ReactNode }) {
       data-scrolled={scrolled}
       className="page-container sticky top-0 z-40 -translate-y-3 pt-3 transition-transform duration-300 sm:-translate-y-4 sm:pt-4"
     >
-      <div className="site-header-bar -mx-2 flex h-14 items-center gap-2 rounded-b-2xl border border-t-0 border-white/10 sm:mx-0 sm:rounded-b-[28px] bg-[#0b0a08]/60 px-2 text-white shadow-[0_12px_32px_-12px_rgb(0_0_0/0.45)] backdrop-blur-xl backdrop-saturate-150 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 sm:h-16 sm:px-8">
+      <div className="site-header-bar -mx-2 flex h-14 items-center gap-2 rounded-b-2xl border border-t-0 border-white/10 sm:mx-0 sm:rounded-b-[28px] bg-[#0a0a0b]/60 px-2 text-white shadow-[0_12px_32px_-12px_rgb(0_0_0/0.45)] backdrop-blur-xl backdrop-saturate-150 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 sm:h-16 sm:px-8">
         {children}
       </div>
     </header>

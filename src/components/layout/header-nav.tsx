@@ -73,7 +73,7 @@ export function HeaderCategories({ categories }: { categories: CategorySummary[]
         }}
         // Mesmo vidro escuro da barra do cabeçalho.
         className={cn(
-          "rounded-2xl border border-white/10 bg-[#0b0a08]/60 p-2 text-white shadow-2xl shadow-black/40 ring-0 backdrop-blur-xl backdrop-saturate-150",
+          "rounded-2xl border border-white/10 bg-[#0a0a0b]/60 p-2 text-white shadow-2xl shadow-black/40 ring-0 backdrop-blur-xl backdrop-saturate-150",
           "w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] sm:w-max sm:max-w-[min(36rem,calc(100vw-2rem))]",
         )}
       >
@@ -146,7 +146,7 @@ export function HeaderSearch() {
           aria-label="Buscar"
           className={cn(
             "absolute top-1/2 right-1.5 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full transition-colors outline-none focus-visible:ring-2 focus-visible:ring-current/40",
-            text.trim() ? "bg-gold text-black hover:bg-gold-light" : "text-current/60 hover:bg-current/10 hover:text-current",
+            text.trim() ? "bg-primary text-primary-foreground hover:bg-gold-light" : "text-current/60 hover:bg-current/10 hover:text-current",
           )}
         >
           <HiArrowRight className="size-4" aria-hidden />

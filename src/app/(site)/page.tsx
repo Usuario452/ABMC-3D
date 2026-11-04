@@ -38,7 +38,7 @@ export default function HomePage() {
         {/* Hero de ponta a ponta, centralizado, com a busca; sobe por baixo do cabeçalho estacionado. */}
         <section
           data-header-park
-          className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#0a0907] text-white sm:-mt-20"
+          className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#09090a] text-white sm:-mt-20"
         >
           <HeaderPark />
           {/* Fundo: vídeo de oficina sobre a foto (fallback), ambos sob um véu escuro para o texto ler bem. */}
@@ -49,7 +49,7 @@ export default function HomePage() {
             aria-hidden
             className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_45%,transparent_0%,rgb(10_9_7/0.55)_70%)]"
           />
-          <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-linear-to-b from-transparent to-[#0a0907]" />
+          <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-linear-to-b from-transparent to-[#09090a]" />
 
           <div className="page-container flex min-h-[680px] flex-col items-center justify-center px-4 pt-32 pb-28 text-center sm:min-h-[840px] sm:pt-36">
             {/* Selo sem chip: ícone e texto no degradê dourado da marca. */}

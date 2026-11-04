@@ -779,7 +779,7 @@ function PhotoPanel({
         >
           <span className="relative flex size-16 items-center justify-center rounded-2xl bg-muted/60 text-muted-foreground transition-colors group-hover:bg-gold/10 group-hover:text-gold">
             <HiOutlinePhoto className="size-7" aria-hidden />
-            <span className="absolute -right-1.5 -bottom-1.5 flex size-6 items-center justify-center rounded-full bg-gold text-primary-foreground shadow-sm">
+            <span className="absolute -right-1.5 -bottom-1.5 flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
               <HiOutlinePlus className="size-3.5" aria-hidden />
             </span>
           </span>

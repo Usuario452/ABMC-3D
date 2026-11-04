@@ -35,7 +35,7 @@ export function Price({
           <p
             className={cn(
               "leading-none line-through",
-              tone === "onDark" ? "text-white/55" : "text-muted-foreground",
+              tone === "onDark" ? "text-white/70" : "text-muted-foreground",
               size === "lg" ? "text-sm" : "text-xs",
             )}
           >
@@ -55,7 +55,7 @@ export function Price({
       <p
         className={cn(
           "leading-none font-bold tracking-tight",
-          tone === "onDark" ? "text-primary" : "text-gold",
+          tone === "onDark" ? "text-gold-light" : "text-gold dark:text-gold-light",
           size === "lg" ? "text-2xl" : "text-base sm:text-xl",
         )}
       >

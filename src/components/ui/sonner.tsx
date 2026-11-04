@@ -44,7 +44,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           title: "text-sm leading-snug font-semibold text-foreground!",
           description: "line-clamp-2 text-[0.8125rem] leading-snug text-muted-foreground!",
           actionButton:
-            "col-start-2 mt-3 justify-self-start rounded-lg bg-gold-gradient px-3 py-1.5 text-xs font-semibold text-[#0b0a08] transition-opacity hover:opacity-90",
+            "col-start-2 mt-3 justify-self-start rounded-lg bg-gold-gradient px-3 py-1.5 text-xs font-semibold text-[#0a0a0b] transition-opacity hover:opacity-90",
           cancelButton:
             "col-start-2 mt-3 justify-self-start rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground",
           closeButton:

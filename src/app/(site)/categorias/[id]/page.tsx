@@ -241,7 +241,7 @@ function CategoryHero({ category, search }: { category: CategoryShowcase; search
   return (
     <section
       data-header-park
-      className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#0a0907] text-white sm:-mt-20"
+      className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#09090a] text-white sm:-mt-20"
     >
       <HeaderPark />
       {/* Fundo: no celular/tablet, a própria capa com pouco desfoque; do lg em diante (ou sem capa), a oficina. */}
@@ -334,7 +334,7 @@ function CategoryHero({ category, search }: { category: CategoryShowcase; search
 function CategoryPageSkeleton() {
   return (
     <>
-      <div className="-mt-[4.25rem] bg-[#0a0907] sm:-mt-20" aria-hidden>
+      <div className="-mt-[4.25rem] bg-[#09090a] sm:-mt-20" aria-hidden>
         <div className="page-container flex flex-col gap-7 pt-28 pb-12 sm:pt-32 lg:flex-row lg:items-center lg:gap-14 lg:pt-36 lg:pb-20">
           <Skeleton className="aspect-[4/5] w-40 shrink-0 rounded-3xl bg-white/10 sm:w-56 lg:w-[300px] xl:w-[340px]" />
           <div className="min-w-0 flex-1">

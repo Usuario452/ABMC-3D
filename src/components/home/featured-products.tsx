@@ -38,7 +38,7 @@ export function FeaturedProducts({ label, products }: { label: string; products:
             />
             <div className="absolute inset-x-0 bottom-0 p-4">
               {product.category ? (
-                <p className="text-[0.7rem] font-semibold tracking-wide text-white/65 uppercase">
+                <p className="text-[0.7rem] font-semibold tracking-wide text-white/80 uppercase">
                   {product.category.name}
                 </p>
               ) : null}

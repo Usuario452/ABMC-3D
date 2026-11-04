@@ -114,7 +114,7 @@ export function ProductsToolbar({
             {/* No celular, só o ícone: busca, filtros e "novo" cabem numa linha. */}
             <span className="sr-only sm:not-sr-only">Filtros</span>
             {activeCount > 0 ? (
-              <span className="flex size-5 items-center justify-center rounded-full bg-gold text-[10px] font-semibold text-primary-foreground">
+              <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
                 {activeCount}
               </span>
             ) : null}

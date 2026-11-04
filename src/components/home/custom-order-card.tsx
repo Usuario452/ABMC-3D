@@ -28,7 +28,7 @@ export function CustomOrderCard({ className = "pt-12" }: { className?: string })
 
   return (
     <section className={cn("page-container", className)} aria-labelledby="personalizados-titulo">
-      <div className="flex items-center gap-6 rounded-3xl bg-[linear-gradient(110deg,#0b0a08_45%,var(--brand-gold)_85%,var(--brand-gold-dark))] p-6 text-white sm:p-8 lg:gap-10 lg:px-10">
+      <div className="flex items-center gap-6 rounded-3xl bg-[linear-gradient(110deg,#0a0a0b_45%,var(--brand-gold)_85%,var(--brand-gold-dark))] p-6 text-white sm:p-8 lg:gap-10 lg:px-10">
         <div className="min-w-0 flex-1">
           <p className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide text-primary uppercase">
             <HiOutlineSparkles className="size-4" aria-hidden />
@@ -89,7 +89,7 @@ export function CustomOrderStrip({ className }: { className?: string }) {
 
   return (
     <section className={cn("page-container", className)} aria-labelledby="personalizados-faixa-titulo">
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl bg-[linear-gradient(100deg,#0b0a08_60%,var(--brand-gold-dark)_120%)] px-5 py-4 text-white sm:flex-nowrap sm:px-6">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl bg-[linear-gradient(100deg,#0a0a0b_60%,var(--brand-gold-dark)_120%)] px-5 py-4 text-white sm:flex-nowrap sm:px-6">
         <span className="hidden size-10 shrink-0 items-center justify-center rounded-xl bg-white/5 text-primary ring-1 ring-white/10 sm:flex">
           <HiOutlineSparkles className="size-5" aria-hidden />
         </span>

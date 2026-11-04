@@ -5,30 +5,31 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Identidade KuboStudio, com dois temas: claro e escuro.
- * Os tokens semânticos mudam de tema; o dourado da marca (--brand-gold*) é o mesmo nos dois.
+ * Identidade ABMC 3D, com dois temas: claro e escuro.
+ * Os tokens semânticos mudam de tema; a cor da marca é prata (--brand-gold*, nome mantido do kit
+ * original para não mexer nos componentes): um prata claro e um mais escuro, iguais nos dois temas.
  * O tema vem da classe "dark" no <html> (hoje fixa em app/layout.tsx): um seletor futuro só
  * precisa alternar essa classe. Nenhum componente deve usar cores fixas: só estes tokens.
  */
 :root {
   /* Marca: iguais nos dois temas */
-  --brand-gold: #efc326;
-  --brand-gold-light: #fae942;
-  --brand-gold-dark: #ca7b17;
+  --brand-gold: #b9bec5;
+  --brand-gold-light: #e6e9ed;
+  --brand-gold-dark: #7a7f88;
 
   /* Tema claro (padrão do CSS) */
-  --brand-background: #f6f5f1;
+  --brand-background: #f4f5f7;
   --brand-surface: #ffffff;
-  --brand-surface-elevated: #efede7;
-  --brand-foreground: #0d0d0d;
-  --brand-muted-foreground: #66645e;
-  --brand-border: #e2dfd6;
+  --brand-surface-elevated: #ecedf0;
+  --brand-foreground: #0d0e10;
+  --brand-muted-foreground: #62666d;
+  --brand-border: #dfe1e5;
   --brand-success: #16a34a;
   --brand-destructive: #dc2626;
 
-  /* Dourado para texto e ícones: mais escuro no claro, para manter o contraste */
-  --gold: #9a6a00;
-  --gold-gradient-text: linear-gradient(135deg, #d99400, #9a6a00);
+  /* Prata para texto e ícones: mais escuro no claro, para manter o contraste */
+  --gold: #5d626a;
+  --gold-gradient-text: linear-gradient(135deg, #8d929a, #4b5058);
 
   /* Mapeamento para os tokens do shadcn/ui */
   --background: var(--brand-background);
@@ -43,12 +44,12 @@
   --secondary-foreground: var(--brand-foreground);
   --muted: var(--brand-surface-elevated);
   --muted-foreground: var(--brand-muted-foreground);
-  --accent: #ebe8df;
+  --accent: #e8e9ec;
   --accent-foreground: var(--brand-foreground);
   --destructive: var(--brand-destructive);
   --success: var(--brand-success);
   --border: var(--brand-border);
-  --input: #d3cfc4;
+  --input: #cfd2d7;
   --ring: var(--brand-gold-dark);
   --radius: 0.75rem;
 
@@ -70,7 +71,7 @@
   --panel-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 6px 20px -6px rgb(0 0 0 / 0.12);
 
   /* Cores categóricas dos gráficos (fatias, séries): o dourado abre, as demais diferenciam. */
-  --chart-cat-1: #e0b21b;
+  --chart-cat-1: #7a7f88;
   --chart-cat-2: #3b6fd8;
   --chart-cat-3: #0f9488;
   --chart-cat-4: #e0603e;

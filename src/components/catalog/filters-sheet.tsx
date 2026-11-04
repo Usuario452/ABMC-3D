@@ -19,7 +19,7 @@ export function FiltersSheet({ activeCount, children }: { activeCount: number; c
           <HiOutlineAdjustmentsHorizontal aria-hidden />
           Filtros
           {activeCount > 0 ? (
-            <span className="flex size-5 items-center justify-center rounded-full bg-gold text-[0.7rem] font-semibold text-black">
+            <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[0.7rem] font-semibold text-primary-foreground">
               {activeCount}
             </span>
           ) : null}

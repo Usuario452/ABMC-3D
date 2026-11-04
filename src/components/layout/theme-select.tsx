@@ -57,7 +57,7 @@ export function ThemeSelect() {
       <DropdownMenuContent
         align="end"
         sideOffset={10}
-        className="min-w-40 rounded-2xl border-white/10 bg-[#0b0a08]/60 p-2 text-white shadow-2xl shadow-black/40 backdrop-blur-xl backdrop-saturate-150 duration-200 ease-out"
+        className="min-w-40 rounded-2xl border-white/10 bg-[#0a0a0b]/60 p-2 text-white shadow-2xl shadow-black/40 backdrop-blur-xl backdrop-saturate-150 duration-200 ease-out"
       >
         <DropdownMenuLabel className="px-3 pt-1 pb-1.5 text-[0.7rem] font-semibold tracking-wide text-white/50 uppercase">
           Tema

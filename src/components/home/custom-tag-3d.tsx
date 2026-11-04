@@ -37,7 +37,7 @@ export function CustomTag3D({ text = "SEU NOME", className }: { text?: string; c
                 transform: `translateZ(${i * LAYER_GAP}px)`,
                 background: top
                   ? "linear-gradient(140deg, #ffffff, #ece9e1)"
-                  : `color-mix(in srgb, #f4f1ea ${shade}%, #0b0a08)`,
+                  : `color-mix(in srgb, #f4f1ea ${shade}%, #0a0a0b)`,
                 boxShadow: i === 0 ? "0 18px 30px -8px rgb(0 0 0 / 0.55)" : undefined,
               }}
             >
@@ -59,7 +59,7 @@ export function CustomTag3D({ text = "SEU NOME", className }: { text?: string; c
               className="absolute inset-y-0 right-5 left-12 flex items-center justify-center text-[1.7rem] font-extrabold tracking-tight whitespace-nowrap"
               style={{
                 transform: `translateZ(${(PLATE_LAYERS + i) * LAYER_GAP}px)`,
-                color: top ? "#0b0a08" : `color-mix(in srgb, #ca7b17 ${60 + i * 6}%, #0b0a08)`,
+                color: top ? "#0a0a0b" : `color-mix(in srgb, var(--brand-gold-dark) ${60 + i * 6}%, #0a0a0b)`,
               }}
             >
               {text}
