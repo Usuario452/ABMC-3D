@@ -10,16 +10,19 @@ import { ProductCard } from "@/components/catalog/product-card"
 import { ProductDetailSkeleton } from "@/components/catalog/skeletons"
 import { FeaturedSection, FeaturedSkeleton } from "@/components/home/featured-section"
 import { ScrollRow } from "@/components/home/scroll-row"
+import { JsonLd } from "@/components/shared/json-ld"
 import { LoadError } from "@/components/shared/load-error"
 import { Expandable } from "@/components/shared/expandable"
 import { Markdown, markdownToText } from "@/components/shared/markdown"
 import { siteConfig } from "@/config/site"
 import { getProductBySlug, getRelatedProducts } from "@/lib/data/catalog"
 import { load } from "@/lib/data/load"
+import { formatPrice } from "@/lib/format"
 import { Price } from "@/components/catalog/price"
 import { SLUG_PATTERN } from "@/lib/slug"
 import { isDatabaseConfigured } from "@/lib/env"
 import { buildCategoryHref } from "@/lib/catalog-url"
+import { breadcrumbJsonLd, productJsonLd } from "@/lib/seo"
 import type { CategorySummary } from "@/types/catalog"
 
 export async function generateMetadata({ params }: PageProps<"/produtos/[slug]">): Promise<Metadata> {
@@ -31,7 +34,9 @@ export async function generateMetadata({ params }: PageProps<"/produtos/[slug]">
 
   const product = result.data
   if (!product) return { title: "Produto não encontrado", robots: { index: false } }
-  const description = markdownToText(product.description).slice(0, 160) || siteConfig.seo.description
+  // Preço na frente da descrição: aparece no resultado de busca e na prévia do link.
+  const summary = markdownToText(product.description) || siteConfig.seo.description
+  const description = `${formatPrice(product.priceCents)} · ${summary}`.slice(0, 160)
   return {
     title: product.name,
     description,
@@ -112,6 +117,27 @@ async function ProductContent({ params }: { params: PageProps<"/produtos/[slug]"
   return (
     <>
       <TrackProductView productId={product.id} />
+      <JsonLd
+        data={[
+          productJsonLd({
+            id: product.id,
+            name: product.name,
+            slug: product.slug,
+            description: markdownToText(product.description).slice(0, 5000),
+            priceCents: product.priceCents,
+            imagePaths: product.images.map((image) => image.storagePath),
+            categoryName: product.category?.name ?? null,
+          }),
+          breadcrumbJsonLd([
+            { name: "Início", path: "/" },
+            { name: "Catálogo", path: "/catalogo" },
+            ...(product.category
+              ? [{ name: product.category.name, path: buildCategoryHref(product.category.id) }]
+              : []),
+            { name: product.name, path: `/produtos/${product.slug}` },
+          ]),
+        ]}
+      />
       <div className="page-container pt-6 pb-4 sm:pt-8">
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-16 xl:gap-20 xl:grid-cols-[minmax(0,640px)_minmax(0,1fr)]">

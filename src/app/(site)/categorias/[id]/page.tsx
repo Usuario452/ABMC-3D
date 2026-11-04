@@ -23,6 +23,7 @@ import { ProductGridSkeleton } from "@/components/catalog/skeletons"
 import { TrackCatalog } from "@/components/catalog/track-catalog"
 import { CustomOrderStrip } from "@/components/home/custom-order-card"
 import { FeaturedSection, FeaturedSkeleton } from "@/components/home/featured-section"
+import { JsonLd } from "@/components/shared/json-ld"
 import { LoadError } from "@/components/shared/load-error"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -31,6 +32,7 @@ import { buildCatalogHref, buildCategoryHref } from "@/lib/catalog-url"
 import { getCatalogPage, getCategoryById, type CategoryShowcase } from "@/lib/data/catalog"
 import { load } from "@/lib/data/load"
 import { isDatabaseConfigured } from "@/lib/env"
+import { breadcrumbJsonLd, categoryJsonLd } from "@/lib/seo"
 import { cn } from "@/lib/utils"
 import { parseCatalogQuery, uuidSchema } from "@/lib/validation/schemas"
 import { getWhatsAppContactUrl } from "@/lib/whatsapp"
@@ -52,7 +54,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: category.name,
     description,
     alternates: { canonical: buildCategoryHref(category.id) },
-    openGraph: { title: category.name, description },
+    openGraph: {
+      title: category.name,
+      description,
+      // Endereço fixo (/img): a prévia guardada pelo WhatsApp e redes sociais não pode expirar.
+      images: category.coverPath ? [{ url: `/img/${category.coverPath}`, alt: category.name }] : undefined,
+    },
   }
 }
 
@@ -89,6 +96,16 @@ async function CategoryContent({ params, searchParams }: Props) {
 
   return (
     <>
+      <JsonLd
+        data={[
+          categoryJsonLd(category),
+          breadcrumbJsonLd([
+            { name: "Início", path: "/" },
+            { name: "Catálogo", path: "/catalogo" },
+            { name: category.name, path: buildCategoryHref(category.id) },
+          ]),
+        ]}
+      />
       <CategoryHero category={category} search={query.q} />
       {/* Tudo abaixo do topo fica sobre a grade quadriculada da página. */}
       <div className="relative isolate">

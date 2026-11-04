@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { Suspense } from "react"
@@ -11,6 +12,7 @@ import { FeaturedSection, FeaturedSkeleton } from "@/components/home/featured-se
 import { HeroVideo } from "@/components/home/hero-video"
 import { HomeSearchArea, HomeSearchInput, HomeSearchProvider } from "@/components/home/home-search"
 import { ProductGridSkeleton } from "@/components/catalog/skeletons"
+import { JsonLd } from "@/components/shared/json-ld"
 import { LoadError } from "@/components/shared/load-error"
 import { StateMessage } from "@/components/shared/state-message"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -18,7 +20,12 @@ import { siteConfig } from "@/config/site"
 import { getCatalogPage, getShowcaseCategories } from "@/lib/data/catalog"
 import { load } from "@/lib/data/load"
 import { parseCatalogQuery } from "@/lib/validation/schemas"
+import { siteJsonLd } from "@/lib/seo"
 import { getWhatsAppContactUrl } from "@/lib/whatsapp"
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+}
 
 export default function HomePage() {
   const { texts } = siteConfig
@@ -26,6 +33,7 @@ export default function HomePage() {
 
   return (
     <>
+      <JsonLd data={siteJsonLd()} />
       <HomeSearchProvider>
         {/* Hero de ponta a ponta, centralizado, com a busca; sobe por baixo do cabeçalho estacionado. */}
         <section

@@ -172,7 +172,12 @@ export async function getActiveCategories(): Promise<Cached<CategorySummary[]>> 
   })
 }
 
-export type CategoryShowcase = CategorySummary & { description: string | null; coverUrl: string | null }
+export type CategoryShowcase = CategorySummary & {
+  description: string | null
+  coverUrl: string | null
+  /** Caminho da capa no bucket (para o endereço fixo /img/…, usado em SEO e prévias de link). */
+  coverPath: string | null
+}
 
 /** Uma categoria ativa pelo id, com descrição e capa (null se não existir ou estiver inativa). */
 export async function getCategoryById(id: string): Promise<Cached<CategoryShowcase | null>> {
@@ -187,7 +192,7 @@ export async function getCategoryById(id: string): Promise<Cached<CategoryShowca
     `
     if (!row) return null
     const { cover_path, ...category } = row
-    return { ...category, coverUrl: cover_path ? getProductImageUrl(cover_path) : null }
+    return { ...category, coverUrl: cover_path ? getProductImageUrl(cover_path) : null, coverPath: cover_path }
   })
 }
 
@@ -206,6 +211,7 @@ export async function getShowcaseCategories(): Promise<Cached<CategoryShowcase[]
     return rows.map(({ cover_path, ...category }) => ({
       ...category,
       coverUrl: cover_path ? getProductImageUrl(cover_path) : null,
+      coverPath: cover_path,
     }))
   })
 }

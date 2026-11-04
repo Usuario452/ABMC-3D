@@ -7,10 +7,12 @@ import { HeaderPark } from "@/components/layout/header-park"
 import { CatalogBrowser } from "@/components/catalog/catalog-browser"
 import { HeroSearch } from "@/components/catalog/hero-search"
 import { CatalogBrowserSkeleton } from "@/components/catalog/skeletons"
+import { JsonLd } from "@/components/shared/json-ld"
 import { LoadError } from "@/components/shared/load-error"
 import { buildCatalogHref } from "@/lib/catalog-url"
 import { getActiveCategories } from "@/lib/data/catalog"
 import { load } from "@/lib/data/load"
+import { breadcrumbJsonLd } from "@/lib/seo"
 import { parseCatalogQuery } from "@/lib/validation/schemas"
 
 export const metadata: Metadata = {
@@ -29,6 +31,12 @@ type SearchParams = PageProps<"/catalogo">["searchParams"]
 export default function CatalogPage({ searchParams }: PageProps<"/catalogo">) {
   return (
     <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Início", path: "/" },
+          { name: "Catálogo", path: "/catalogo" },
+        ])}
+      />
       <section
         data-header-park
         className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#0a0907] text-white sm:-mt-20"
