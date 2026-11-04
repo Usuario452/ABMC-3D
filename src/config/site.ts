@@ -40,7 +40,6 @@ export const siteConfig = {
       "Peças, presentes e protótipos em impressão 3D, para você e para a sua empresa. Encontre no catálogo ou peça sob medida.",
     categoriesTitle: "Categorias",
     featuredTitle: "Destaques",
-    latestTitle: "Novidades",
     allProductsTitle: "Todos os produtos",
     customTitle: "Tem uma ideia? A gente imprime.",
     customDescription:
@@ -55,7 +54,8 @@ export const siteConfig = {
   catalog: {
     pageSize: 12,
     featuredLimit: 12,
-    relatedLimit: 4,
+    /** Produtos da mesma categoria no carrossel da página do produto. */
+    relatedLimit: 10,
     /** Produto conta como "Novidade" por estes dias após publicado. */
     newDays: 30,
     /** Faixas de preço da coluna de filtros, em reais (null = sem limite). */

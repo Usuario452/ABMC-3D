@@ -1,24 +1,43 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useEffect, useState, useTransition } from "react"
+import { useEffect, useId, useState, useTransition } from "react"
 import { HiMagnifyingGlass, HiXMark } from "react-icons/hi2"
+import { cn } from "@/lib/utils"
 
 // Pausa na digitação antes de buscar sozinho.
 const SEARCH_DEBOUNCE_MS = 400
 
 /**
- * Busca do topo da página de uma categoria: filtra a lista abaixo enquanto a pessoa digita (após uma
- * pausa), trocando o ?q= da URL sem rolar a página nem empilhar histórico. Enter busca na hora.
+ * Busca de vidro dos heros (catálogo e categoria): filtra a lista abaixo enquanto a pessoa digita (após
+ * uma pausa), trocando o ?q= da URL sem rolar a página nem empilhar histórico. Enter busca na hora. Os
+ * demais filtros da URL (`baseQuery`) são mantidos; a página volta para a primeira.
  */
-export function CategorySearch({ basePath, categoryName, initial }: { basePath: string; categoryName: string; initial: string }) {
+export function HeroSearch({
+  basePath,
+  placeholder,
+  initial,
+  baseQuery = "",
+  className,
+}: {
+  basePath: string
+  placeholder: string
+  /** Texto buscado hoje (o ?q= atual). */
+  initial: string
+  /** Demais parâmetros da URL a manter, sem q e sem página (ex.: "categoria=chaveiros&ordem=preco-asc"). */
+  baseQuery?: string
+  className?: string
+}) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [search, setSearch] = useState(initial)
+  const inputId = useId()
 
   const go = (term: string) => {
-    const href = term ? `${basePath}?q=${encodeURIComponent(term)}` : basePath
-    startTransition(() => router.replace(href, { scroll: false }))
+    const params = new URLSearchParams(baseQuery)
+    if (term) params.set("q", term)
+    const search = params.toString()
+    startTransition(() => router.replace(search ? `${basePath}?${search}` : basePath, { scroll: false }))
   }
 
   useEffect(() => {
@@ -26,9 +45,9 @@ export function CategorySearch({ basePath, categoryName, initial }: { basePath: 
     if (term === initial) return
     const timer = setTimeout(() => go(term), SEARCH_DEBOUNCE_MS)
     return () => clearTimeout(timer)
-    // go só depende de basePath e router.
+    // go só depende de basePath, baseQuery e router.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, initial, basePath, router])
+  }, [search, initial, basePath, baseQuery, router])
 
   // A busca mudou por fora (voltar, "Limpar busca"): o campo acompanha.
   const [synced, setSynced] = useState(initial)
@@ -40,27 +59,27 @@ export function CategorySearch({ basePath, categoryName, initial }: { basePath: 
   return (
     <form
       role="search"
-      className="relative mt-7 w-full max-w-lg"
+      className={cn("relative w-full max-w-lg", className)}
       onSubmit={(event) => {
         event.preventDefault()
         go(search.trim().slice(0, 80))
       }}
     >
-      <label htmlFor="category-search" className="sr-only">
-        Buscar em {categoryName}
+      <label htmlFor={inputId} className="sr-only">
+        {placeholder}
       </label>
       <HiMagnifyingGlass
         className="pointer-events-none absolute top-1/2 left-5 z-10 size-5 -translate-y-1/2 text-white/60"
         aria-hidden
       />
       <input
-        id="category-search"
+        id={inputId}
         type="search"
         enterKeyHint="search"
         maxLength={80}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
-        placeholder={`Buscar em ${categoryName}`}
+        placeholder={placeholder}
         aria-busy={isPending}
         className="h-13 w-full rounded-full border border-white/20 bg-white/10 pr-14 pl-13 text-base text-white shadow-2xl shadow-black/30 backdrop-blur-xl transition-colors outline-none placeholder:text-white/55 focus:border-white/40 focus:bg-white/15 [&::-webkit-search-cancel-button]:hidden"
       />

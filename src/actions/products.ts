@@ -29,6 +29,7 @@ function toRow(data: ProductData) {
     description: data.description,
     internal_notes: data.internalNotes,
     price_cents: data.price,
+    compare_at_price_cents: data.compareAtPrice,
     // A primeira categoria escolhida; a lista completa fica em product_categories.
     category_id: data.categoryIds[0],
     is_active: data.isActive,

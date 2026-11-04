@@ -11,12 +11,10 @@ import {
   HiXMark,
 } from "react-icons/hi2"
 import { CatalogEmpty } from "@/components/catalog/catalog-empty"
-import { CatalogFilters } from "@/components/catalog/catalog-filters"
 import { CatalogPagination } from "@/components/catalog/catalog-pagination"
 import { CatalogSidebar } from "@/components/catalog/catalog-sidebar"
 import { FiltersSheet } from "@/components/catalog/filters-sheet"
 import { GRID_WITH_SIDEBAR, ProductGrid } from "@/components/catalog/product-card"
-import { QuickFilters, QuickFiltersSkeleton } from "@/components/catalog/quick-filters"
 import { ProductGridSkeleton, SidebarSkeleton } from "@/components/catalog/skeletons"
 import { TrackCatalog } from "@/components/catalog/track-catalog"
 import { LoadError } from "@/components/shared/load-error"
@@ -35,33 +33,32 @@ type BrowserProps = {
 }
 
 /**
- * Catálogo geral com filtros no estilo do Mercado Livre: coluna de filtros à esquerda (gaveta no celular),
- * busca e ordenação em cima, atalhos rápidos (categorias, destaques, novidades), contagem com os filtros
- * ativos em chips e a grade de produtos.
+ * Corpo do catálogo geral, com filtros no estilo do Mercado Livre: coluna de filtros num card à esquerda
+ * (com a ordenação; gaveta no celular), os filtros ativos em chips e a grade. A busca fica no hero da página.
  */
 export function CatalogBrowser({ query, categoryLabel }: BrowserProps) {
   // As contagens não dependem de página nem de ordem; só recarregam quando um filtro muda.
   const facetKey = buildCatalogHref({ ...query, page: 1, sort: "nome-asc" })
-  const sidebar = (
+  // A mesma coluna aparece no lg (com o cabeçalho "Filtros") e na gaveta do celular (que tem o próprio título).
+  const sidebar = (showHeader: boolean) => (
     <Suspense key={facetKey} fallback={<SidebarSkeleton />}>
-      <SidebarLoader query={query} />
+      <SidebarLoader query={query} showHeader={showHeader} />
     </Suspense>
   )
 
   return (
-    <div className="lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[240px_minmax(0,1fr)]">
+    <div className="lg:grid lg:grid-cols-[232px_minmax(0,1fr)] lg:gap-8 xl:grid-cols-[256px_minmax(0,1fr)]">
       <aside aria-label="Filtros" className="hidden lg:block">
-        <div className="sticky top-24">{sidebar}</div>
+        <div className="sticky top-24 rounded-2xl border border-border bg-card p-5 shadow-[0_12px_32px_-24px_rgb(0_0_0/0.25)]">
+          {sidebar(true)}
+        </div>
       </aside>
 
       <div className="min-w-0 space-y-5">
-        <CatalogFilters
-          query={query}
-          filtersButton={<FiltersSheet activeCount={countActiveFilters(query)}>{sidebar}</FiltersSheet>}
-        />
-        <Suspense key={facetKey} fallback={<QuickFiltersSkeleton />}>
-          <QuickFiltersLoader query={query} />
-        </Suspense>
+        {/* No celular, o botão que abre a coluna de filtros (com a ordenação) numa gaveta. */}
+        <div className="lg:hidden">
+          <FiltersSheet activeCount={countActiveFilters(query)}>{sidebar(false)}</FiltersSheet>
+        </div>
         <Suspense key={JSON.stringify(query)} fallback={<ProductGridSkeleton columns={GRID_WITH_SIDEBAR} />}>
           <Results query={query} categoryLabel={categoryLabel} />
         </Suspense>
@@ -70,17 +67,11 @@ export function CatalogBrowser({ query, categoryLabel }: BrowserProps) {
   )
 }
 
-async function SidebarLoader({ query }: { query: CatalogQuery }) {
+async function SidebarLoader({ query, showHeader }: { query: CatalogQuery; showHeader: boolean }) {
   const result = await load(() => getCatalogFacets(query))
   // Sem as contagens a coluna some; a listagem ao lado continua funcionando.
   if (!result.ok) return null
-  return <CatalogSidebar query={query} facets={result.data} />
-}
-
-async function QuickFiltersLoader({ query }: { query: CatalogQuery }) {
-  const result = await load(() => getCatalogFacets(query))
-  if (!result.ok) return null
-  return <QuickFilters query={query} facets={result.data} />
+  return <CatalogSidebar query={query} facets={result.data} showHeader={showHeader} />
 }
 
 async function Results({ query, categoryLabel }: BrowserProps) {
@@ -178,19 +169,15 @@ async function Results({ query, categoryLabel }: BrowserProps) {
   return (
     <section aria-label="Produtos" className="space-y-5">
       {tracker}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <p className="text-sm font-medium" role="status">
-          {total} {total === 1 ? "resultado" : "resultados"}
-        </p>
-        {chips.length > 0 ? (
-          <>
-            <FilterChips chips={chips} />
-            <Link href="/catalogo" className="text-xs font-medium text-gold hover:underline">
-              Limpar tudo
-            </Link>
-          </>
-        ) : null}
-      </div>
+      {/* Filtros ativos, removíveis um a um. */}
+      {chips.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <FilterChips chips={chips} />
+          <Link href="/catalogo" className="text-xs font-medium text-gold hover:underline">
+            Limpar tudo
+          </Link>
+        </div>
+      ) : null}
       <ProductGrid products={products} preloadFirst={4} columns={GRID_WITH_SIDEBAR} />
       <CatalogPagination query={query} pageCount={pageCount} />
     </section>

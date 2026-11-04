@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { HiArrowUpRight, HiOutlinePhoto } from "react-icons/hi2"
 import { ScrollRow } from "@/components/home/scroll-row"
-import { formatPrice } from "@/lib/format"
+import { Price } from "@/components/catalog/price"
 import type { ProductCardData } from "@/types/catalog"
 
 /**
@@ -34,7 +34,7 @@ export function FeaturedProducts({ label, products }: { label: string; products:
             )}
             <div
               aria-hidden
-              className="absolute inset-0 bg-linear-to-t from-black/90 via-black/25 to-transparent transition-opacity duration-300 group-hover:from-black/95"
+              className="absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/75 via-black/35 to-transparent transition-colors duration-300 group-hover:from-black/85"
             />
             <div className="absolute inset-x-0 bottom-0 p-4">
               {product.category ? (
@@ -49,7 +49,12 @@ export function FeaturedProducts({ label, products }: { label: string; products:
                   aria-hidden
                 />
               </h3>
-              <p className="mt-1.5 text-base font-bold text-primary">{formatPrice(product.priceCents)}</p>
+              <Price
+                priceCents={product.priceCents}
+                compareAtPriceCents={product.compareAtPriceCents}
+                tone="onDark"
+                className="mt-1.5"
+              />
             </div>
           </Link>
         </li>

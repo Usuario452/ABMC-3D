@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest"
 vi.mock("server-only", () => ({}))
 
 const { htmlToMarkdown, isMakerWorldImage, parseMakerWorldId } = await import("@/lib/makerworld")
-const { licenseAllowsSale, licenseLabel } = await import("@/lib/makerworld-link")
+const { licenseAllowsSale, licenseLabel, makerWorldModelUrl, parseMakerWorldLang } = await import("@/lib/makerworld-link")
 
 describe("parseMakerWorldId", () => {
   it("lê o ID de links do MakerWorld, com idioma, slug e âncora", () => {
@@ -26,6 +26,18 @@ describe("parseMakerWorldId", () => {
     expect(parseMakerWorldId("https://makerworld.com/en/collections/123")).toBeNull()
     expect(parseMakerWorldId("não é link")).toBeNull()
     expect(parseMakerWorldId("")).toBeNull()
+  })
+})
+
+describe("idioma do link", () => {
+  it("mantém o idioma do link colado e usa português quando não há", () => {
+    expect(parseMakerWorldLang("https://makerworld.com/pt/models/3280507-feliz-natal?from=recommend#profileId-1")).toBe("pt")
+    expect(parseMakerWorldLang("makerworld.com/en/models/1031570-under-sink")).toBe("en")
+    expect(parseMakerWorldLang("https://makerworld.com/zh-CN/models/1")).toBe("zh-cn")
+    expect(parseMakerWorldLang("https://makerworld.com/models/123")).toBeNull()
+    expect(parseMakerWorldLang("https://evil.com/pt/models/123")).toBeNull()
+    expect(makerWorldModelUrl("3280507")).toBe("https://makerworld.com/pt/models/3280507")
+    expect(makerWorldModelUrl("3280507", "en")).toBe("https://makerworld.com/en/models/3280507")
   })
 })
 

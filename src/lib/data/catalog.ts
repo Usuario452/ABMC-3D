@@ -47,6 +47,7 @@ type CardRow = {
   name: string
   slug: string
   price_cents: number
+  compare_at_price_cents: number | null
   is_available: boolean
   category_id: string
   category_name: string
@@ -63,6 +64,7 @@ function toCard(row: CardRow): ProductCardData {
     name: row.name,
     slug: row.slug,
     priceCents: row.price_cents,
+    compareAtPriceCents: row.compare_at_price_cents,
     isAvailable: row.is_available,
     category: { id: row.category_id, name: row.category_name, slug: row.category_slug },
     image:
@@ -137,7 +139,7 @@ function isVisible(sql: Sql) {
 /** Produtos visíveis na vitrine, com a categoria e a imagem principal (menor position). */
 function publicCards(sql: Sql, where = sql``, orderLimit = sql``) {
   return sql<CardRow[]>`
-    select p.id, p.name, p.slug, p.price_cents, p.is_available,
+    select p.id, p.name, p.slug, p.price_cents, p.compare_at_price_cents, p.is_available,
            c.id as category_id, c.name as category_name, c.slug as category_slug,
            i.id as image_id, i.storage_path as image_path, i.alt_text as image_alt, i.position as image_position
     from products p
@@ -325,30 +327,35 @@ export async function getCatalogFacets(query: CatalogQuery): Promise<Cached<Cata
   })
 }
 
-type DetailRow = Omit<CardRow, `image_${string}`> & { description: string }
+type DetailRow = Omit<CardRow, `image_${string}`> & { description: string; images: RawImage[] }
 
 export async function getProductBySlug(slug: string): Promise<Cached<ProductDetail | null>> {
   "use cache"
   cacheTag(CATALOG_TAG)
 
   return settle("o produto", async (sql) => {
+    // Produto e imagens numa ida só ao banco (cada consulta em cache abre a própria conexão).
     const [product] = await sql<DetailRow[]>`
-      select p.id, p.name, p.slug, p.description, p.price_cents, p.is_available,
-             c.id as category_id, c.name as category_name, c.slug as category_slug
+      select p.id, p.name, p.slug, p.description, p.price_cents, p.compare_at_price_cents, p.is_available,
+             c.id as category_id, c.name as category_name, c.slug as category_slug,
+             coalesce(
+               (
+                 select json_agg(
+                   json_build_object('id', i.id, 'storage_path', i.storage_path, 'alt_text', i.alt_text, 'position', i.position)
+                   order by i.position
+                 )
+                 from product_images i
+                 where i.product_id = p.id
+               ),
+               '[]'::json
+             ) as images
       from products p
       ${activeCategory(sql)}
       where p.slug = ${slug} and p.is_active and p.is_available
     `
     if (!product) return null
 
-    const images = (
-      await sql<RawImage[]>`
-        select id, storage_path, alt_text, position
-        from product_images
-        where product_id = ${product.id}
-        order by position
-      `
-    ).map(mapImage)
+    const images = product.images.map(mapImage)
 
     return {
       id: product.id,
@@ -356,6 +363,7 @@ export async function getProductBySlug(slug: string): Promise<Cached<ProductDeta
       slug: product.slug,
       description: product.description,
       priceCents: product.price_cents,
+      compareAtPriceCents: product.compare_at_price_cents,
       isAvailable: product.is_available,
       category: { id: product.category_id, name: product.category_name, slug: product.category_slug },
       image: images[0] ?? null,

@@ -30,6 +30,19 @@ describe("productSchema", () => {
     expect(parsed.price).toBe(4990)
   })
 
+  it("aceita o preço original (riscado) opcional, só se for maior que o preço", () => {
+    expect(productSchema.parse(valid).compareAtPrice).toBeNull()
+    expect(productSchema.parse({ ...valid, compareAtPrice: "" }).compareAtPrice).toBeNull()
+    expect(productSchema.parse({ ...valid, compareAtPrice: "79,90" }).compareAtPrice).toBe(7990)
+
+    for (const compareAtPrice of ["49,90", "20,00"]) {
+      const result = productSchema.safeParse({ ...valid, compareAtPrice })
+      expect(result.success).toBe(false)
+      expect(result.error?.issues[0]?.path).toEqual(["compareAtPrice"])
+    }
+    expect(productSchema.safeParse({ ...valid, compareAtPrice: "abc" }).success).toBe(false)
+  })
+
   it("rejeita preço inválido e categoria ausente", () => {
     const result = productSchema.safeParse({ ...valid, price: "-1", categoryIds: [] })
     expect(result.success).toBe(false)
@@ -128,5 +141,14 @@ describe("variáveis de ambiente", () => {
     // Endereço da API do R2 não é público: ignorado, para as imagens seguirem com URL assinada.
     vi.stubEnv("NEXT_PUBLIC_IMAGES_BASE_URL", "https://conta123.r2.cloudflarestorage.com")
     expect(getImagesBaseUrl()).toBeNull()
+  })
+})
+
+describe("preço vazio", () => {
+  it("pede o preço quando o campo está vazio", () => {
+    const base = { name: "Vaso", description: "", categoryIds: ["3f1c2d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f"], isActive: true, isAvailable: true, isFeatured: false }
+    const result = productSchema.safeParse({ ...base, price: "  " })
+    expect(result.success).toBe(false)
+    expect(result.error?.issues[0]?.message).toBe("Informe o preço.")
   })
 })

@@ -4,6 +4,7 @@ import { BrandLogo } from "@/components/brand/brand-logo"
 import { CartButton } from "@/components/cart/cart-button"
 import { CartDrawer } from "@/components/cart/cart-drawer"
 import { HeaderCategories, HeaderSearch } from "@/components/layout/header-nav"
+import { ThemeSelect } from "@/components/layout/theme-select"
 import { HeaderShell } from "@/components/layout/header-shell"
 import { siteConfig } from "@/config/site"
 import { getActiveCategories } from "@/lib/data/catalog"
@@ -17,7 +18,7 @@ async function CategoriesSlot() {
 
 /**
  * Cabeçalho da loja: estacionado no hero da home e barra ativa ao rolar. Marca à esquerda; categorias,
- * busca e carrinho à direita.
+ * busca, tema e carrinho à direita.
  */
 export function SiteHeader() {
   return (
@@ -34,6 +35,7 @@ export function SiteHeader() {
           <CategoriesSlot />
         </Suspense>
         <HeaderSearch />
+        <ThemeSelect />
         <CartButton />
       </div>
       <CartDrawer />

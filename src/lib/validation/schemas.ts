@@ -12,6 +12,10 @@ export const uuidSchema = z.uuid({ message: "Identificador inválido." })
 
 /** Aceita tanto o texto digitado ("19,90") quanto um número de centavos. */
 const priceField = z.union([z.string(), z.number()]).transform((value, ctx) => {
+  if (typeof value === "string" && value.trim() === "") {
+    ctx.addIssue({ code: "custom", message: "Informe o preço." })
+    return z.NEVER
+  }
   const cents = typeof value === "number" ? value : parsePriceToCents(value)
   if (cents === null || !Number.isInteger(cents) || cents < 0 || cents > MAX_PRICE_CENTS) {
     ctx.addIssue({ code: "custom", message: "Informe um preço válido (ex.: 49,90)." })
@@ -19,6 +23,20 @@ const priceField = z.union([z.string(), z.number()]).transform((value, ctx) => {
   }
   return cents
 })
+
+/** Preço opcional: vazio vira null; senão, as mesmas regras do preço. */
+const optionalPriceField = z
+  .union([z.string(), z.number(), z.null()])
+  .optional()
+  .transform((value, ctx) => {
+    if (value === null || value === undefined || (typeof value === "string" && value.trim() === "")) return null
+    const cents = typeof value === "number" ? value : parsePriceToCents(value)
+    if (cents === null || !Number.isInteger(cents) || cents < 0 || cents > MAX_PRICE_CENTS) {
+      ctx.addIssue({ code: "custom", message: "Informe um preço válido (ex.: 49,90)." })
+      return z.NEVER
+    }
+    return cents
+  })
 
 // ---------------------------------------------------------------------------
 // Autenticação
@@ -38,11 +56,7 @@ export type SignInInput = z.input<typeof signInSchema>
 // ---------------------------------------------------------------------------
 
 export const categorySchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Informe o nome da categoria.")
-    .max(80, "O nome pode ter no máximo 80 caracteres."),
+  name: z.string().trim().min(1, "Informe o nome da categoria.").max(80, "O nome pode ter no máximo 80 caracteres."),
   // Opcional: texto vazio vira null no banco.
   description: z.string().trim().max(300, "A descrição pode ter no máximo 300 caracteres.").optional(),
   // O slug não vem do formulário: o servidor gera a partir do nome na criação.
@@ -55,26 +69,34 @@ export type CategoryInput = z.input<typeof categorySchema>
 // Produtos
 // ---------------------------------------------------------------------------
 
-export const productSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Informe o nome do produto.")
-    .max(120, "O nome pode ter no máximo 120 caracteres."),
-  // O slug não vem do formulário: o servidor gera a partir do nome (ver actions/products.ts).
-  description: z.string().trim().max(5000, "A descrição pode ter no máximo 5000 caracteres."),
-  internalNotes: z.string().trim().max(2000, "A anotação pode ter no máximo 2000 caracteres.").default(""),
-  price: priceField,
-  // Uma ou mais categorias, na ordem escolhida; a primeira vira o rótulo exibido no card.
-  categoryIds: z
-    .array(uuidSchema)
-    .min(1, "Selecione ao menos uma categoria.")
-    .max(10, "Escolha no máximo 10 categorias.")
-    .refine((ids) => new Set(ids).size === ids.length, "Categoria repetida."),
-  isActive: z.boolean(),
-  isAvailable: z.boolean(),
-  isFeatured: z.boolean(),
-})
+export const productSchema = z
+  .object({
+    name: z.string().trim().min(1, "Informe o nome do produto.").max(120, "O nome pode ter no máximo 120 caracteres."),
+    // O slug não vem do formulário: o servidor gera a partir do nome (ver actions/products.ts).
+    description: z.string().trim().max(5000, "A descrição pode ter no máximo 5000 caracteres."),
+    internalNotes: z.string().trim().max(2000, "A anotação pode ter no máximo 2000 caracteres.").default(""),
+    price: priceField,
+    // Preço original, exibido riscado (desconto). Opcional; quando informado, maior que o preço.
+    compareAtPrice: optionalPriceField,
+    // Uma ou mais categorias, na ordem escolhida; a primeira vira o rótulo exibido no card.
+    categoryIds: z
+      .array(uuidSchema)
+      .min(1, "Selecione ao menos uma categoria.")
+      .max(10, "Escolha no máximo 10 categorias.")
+      .refine((ids) => new Set(ids).size === ids.length, "Categoria repetida."),
+    isActive: z.boolean(),
+    isAvailable: z.boolean(),
+    isFeatured: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.compareAtPrice !== null && data.compareAtPrice <= data.price) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["compareAtPrice"],
+        message: "O preço original precisa ser maior que o preço atual.",
+      })
+    }
+  })
 
 export type ProductInput = z.input<typeof productSchema>
 export type ProductData = z.output<typeof productSchema>

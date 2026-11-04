@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { FaWhatsapp } from "react-icons/fa6"
 import { HiArrowRight, HiOutlineCubeTransparent, HiOutlineSquares2X2 } from "react-icons/hi2"
+import { HeaderPark } from "@/components/layout/header-park"
 import { AllProducts } from "@/components/home/all-products"
 import { CategoriesCarousel } from "@/components/home/categories-carousel"
 import { CustomOrderCard } from "@/components/home/custom-order-card"
@@ -31,6 +32,7 @@ export default function HomePage() {
           data-header-park
           className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#0a0907] text-white sm:-mt-20"
         >
+          <HeaderPark />
           {/* Fundo: vídeo de oficina sobre a foto (fallback), ambos sob um véu escuro para o texto ler bem. */}
           <Image src="/hero/oficina-3d.webp" alt="" fill priority sizes="100vw" className="-z-30 object-cover" />
           <HeroVideo />

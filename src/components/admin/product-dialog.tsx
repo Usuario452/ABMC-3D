@@ -48,7 +48,13 @@ import { centsToInputValue, maskPriceInput } from "@/lib/format"
 import { prepareImageForUpload } from "@/lib/image-compress"
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGES_PER_PRODUCT } from "@/lib/images"
 import type { MakerWorldModel } from "@/lib/makerworld"
-import { licenseAllowsSale, licenseLabel, makerWorldModelUrl, parseMakerWorldId } from "@/lib/makerworld-link"
+import {
+  licenseAllowsSale,
+  licenseLabel,
+  makerWorldModelUrl,
+  parseMakerWorldId,
+  parseMakerWorldLang,
+} from "@/lib/makerworld-link"
 import { cn } from "@/lib/utils"
 import { productSchema, type ProductData, type ProductInput } from "@/lib/validation/schemas"
 import type { ProductImage } from "@/types/catalog"
@@ -107,6 +113,7 @@ export function ProductDialog({
       description: product?.description ?? "",
       internalNotes: product?.internal_notes ?? "",
       price: product ? centsToInputValue(product.price_cents) : "",
+      compareAtPrice: product?.compare_at_price_cents ? centsToInputValue(product.compare_at_price_cents) : "",
       categoryIds: product?.categoryIds ?? [],
       isActive: product?.is_active ?? true,
       // "Ativo" já decide se o produto aparece; disponibilidade não é mais editada à parte.
@@ -116,6 +123,7 @@ export function ProductDialog({
   })
   const { errors, isDirty } = form.formState
   const priceInput = form.register("price")
+  const compareInput = form.register("compareAtPrice")
   const notesValue = useWatch({ control: form.control, name: "internalNotes" })
   const busy = isPending || uploading !== null
 
@@ -266,7 +274,11 @@ export function ProductDialog({
 
   const onSubmit = form.handleSubmit((values) => {
     // Envia o texto original do preço; o servidor converte e valida novamente.
-    const input: ProductInput = { ...values, price: form.getValues("price") }
+    const input: ProductInput = {
+      ...values,
+      price: form.getValues("price"),
+      compareAtPrice: form.getValues("compareAtPrice") ?? "",
+    }
     startTransition(async () => {
       try {
         if (product) {
@@ -295,6 +307,18 @@ export function ProductDialog({
         networkErrorToast()
       }
     })
+  }, (invalid) => {
+    // Faltou algo: além do texto vermelho em cada campo (e do foco no primeiro), um aviso que diz o quê.
+    const labels: Record<string, string> = {
+      name: "nome",
+      price: "preço",
+      compareAtPrice: "preço original",
+      categoryIds: "categoria",
+      description: "descrição",
+      internalNotes: "anotação",
+    }
+    const missing = Object.keys(invalid).map((field) => labels[field] ?? field)
+    toast.error("Confira os campos destacados.", { description: missing.length ? `Falta ou está inválido: ${missing.join(", ")}.` : undefined })
   })
 
   function applyFieldErrors(result: { ok: boolean; fieldErrors?: Record<string, string[] | undefined> }) {
@@ -359,7 +383,7 @@ export function ProductDialog({
               onReorder={reorder}
             />
 
-            <div className="grid min-w-0 grid-cols-1 content-start gap-x-4 gap-y-5 sm:grid-cols-2">
+            <div className="grid min-w-0 grid-cols-1 content-start gap-x-4 gap-y-3 sm:grid-cols-2">
               <Field data-invalid={Boolean(errors.name)} className="sm:col-span-2">
                 <FieldLabel htmlFor="product-name">Nome <span className="text-destructive" aria-hidden>*</span></FieldLabel>
                 <div className="relative">
@@ -379,47 +403,72 @@ export function ProductDialog({
                 <FieldError errors={[errors.name]} />
               </Field>
 
-              <Field data-invalid={Boolean(errors.price)}>
-                <div className="flex items-center justify-between gap-2">
-                  <FieldLabel htmlFor="product-price">Preço <span className="text-destructive" aria-hidden>*</span></FieldLabel>
-                  <button
-                    type="button"
-                    onClick={() => setCalculating(true)}
-                    disabled={busy}
-                    className="inline-flex items-center gap-1 rounded-md text-xs font-medium text-gold transition-colors outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-                  >
-                    <HiOutlineCalculator className="size-3.5" aria-hidden />
-                    Calcular
-                  </button>
+              <Field data-invalid={Boolean(errors.price || errors.compareAtPrice)} className="sm:col-span-2">
+                <FieldLabel htmlFor="product-price">Preço <span className="text-destructive" aria-hidden>*</span></FieldLabel>
+                {/* Preço atual (cobrado) e, opcional, o preço original exibido riscado na loja. */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="relative">
+                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                      R$
+                    </span>
+                    <Input
+                      id="product-price"
+                      aria-required
+                      inputMode="numeric"
+                      autoComplete="off"
+                      placeholder="0,00"
+                      className="pr-10 pl-9 tabular-nums"
+                      aria-invalid={Boolean(errors.price)}
+                      {...priceInput}
+                      onChange={(event) => {
+                        // Máscara de moeda: os dígitos entram pela direita, como centavos.
+                        event.target.value = maskPriceInput(event.target.value)
+                        priceInput.onChange(event)
+                      }}
+                    />
+                    {/* Calculadora de preço dentro do campo. */}
+                    <button
+                      type="button"
+                      onClick={() => setCalculating(true)}
+                      disabled={busy}
+                      aria-label="Calcular preço"
+                      title="Calcular preço"
+                      className="absolute top-1/2 right-1 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-gold transition-colors outline-none hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                    >
+                      <HiOutlineCalculator className="size-4" aria-hidden />
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <label htmlFor="product-compare-price" className="sr-only">
+                      Preço original, exibido riscado (opcional)
+                    </label>
+                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                      De R$
+                    </span>
+                    <Input
+                      id="product-compare-price"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      placeholder="opcional"
+                      title="Preço original, exibido riscado na loja"
+                      className="pl-14 tabular-nums line-through decoration-muted-foreground/60 placeholder:no-underline"
+                      aria-invalid={Boolean(errors.compareAtPrice)}
+                      {...compareInput}
+                      onChange={(event) => {
+                        event.target.value = event.target.value.trim() === "" ? "" : maskPriceInput(event.target.value)
+                        compareInput.onChange(event)
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="relative">
-                  <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-                    R$
-                  </span>
-                  <Input
-                    id="product-price"
-                    aria-required
-                    inputMode="numeric"
-                    autoComplete="off"
-                    placeholder="0,00"
-                    className="pl-9 tabular-nums"
-                    aria-invalid={Boolean(errors.price)}
-                    {...priceInput}
-                    onChange={(event) => {
-                      // Máscara de moeda: os dígitos entram pela direita, como centavos.
-                      event.target.value = maskPriceInput(event.target.value)
-                      priceInput.onChange(event)
-                    }}
-                  />
-                </div>
-                <FieldError errors={[errors.price]} />
+                <FieldError errors={[errors.price, errors.compareAtPrice]} />
               </Field>
 
               <Controller
                 control={form.control}
                 name="categoryIds"
                 render={({ field }) => (
-                  <Field data-invalid={Boolean(errors.categoryIds)}>
+                  <Field data-invalid={Boolean(errors.categoryIds)} className="sm:col-span-2">
                     <div className="flex items-center justify-between gap-2">
                       <FieldLabel htmlFor="product-category">Categorias <span className="text-destructive" aria-hidden>*</span></FieldLabel>
                       <button
@@ -952,17 +1001,18 @@ function MakerWorldImportDialog({
   const [loading, setLoading] = useState(false)
   const linkInput = useRef<HTMLInputElement>(null)
   const modelId = parseMakerWorldId(link)
-  // Troca o link colado pelo limpo (só domínio e ID), sem idioma, slug, parâmetros nem âncora.
+  // Troca o link colado pelo limpo (domínio, idioma e ID), sem slug, parâmetros nem âncora. O idioma do
+  // link é mantido (ex.: /pt/); sem idioma, português.
   const clean = (value: string) => {
     const id = parseMakerWorldId(value)
-    setLink(id ? makerWorldModelUrl(id) : value)
+    setLink(id ? makerWorldModelUrl(id, parseMakerWorldLang(value) ?? undefined) : value)
   }
 
   async function run() {
     if (!modelId || loading) return
     setLoading(true)
     try {
-      const result = await importFromMakerWorld(makerWorldModelUrl(modelId))
+      const result = await importFromMakerWorld(makerWorldModelUrl(modelId, parseMakerWorldLang(link) ?? undefined))
       if (!feedback(result)) return
       onImported(result.data)
       setLink("")
@@ -1050,7 +1100,7 @@ function MakerWorldImportDialog({
                   aria-label="Link do modelo no MakerWorld"
                   aria-invalid={Boolean(link.trim()) && !modelId}
                   aria-describedby="makerworld-link-status"
-                  placeholder="makerworld.com/en/models/…"
+                  placeholder="makerworld.com/pt/models/…"
                   value={link}
                   onChange={(event) => setLink(event.target.value)}
                   onPaste={(event) => {

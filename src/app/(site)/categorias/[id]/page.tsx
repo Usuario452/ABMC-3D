@@ -14,9 +14,10 @@ import {
   HiOutlineSquares2X2,
   HiXMark,
 } from "react-icons/hi2"
+import { HeaderPark } from "@/components/layout/header-park"
 import { CatalogEmpty } from "@/components/catalog/catalog-empty"
 import { CatalogPagination } from "@/components/catalog/catalog-pagination"
-import { CategorySearch } from "@/components/catalog/category-search"
+import { HeroSearch } from "@/components/catalog/hero-search"
 import { ProductGrid } from "@/components/catalog/product-card"
 import { ProductGridSkeleton } from "@/components/catalog/skeletons"
 import { TrackCatalog } from "@/components/catalog/track-catalog"
@@ -222,6 +223,7 @@ function CategoryHero({ category, search }: { category: CategoryShowcase; search
       data-header-park
       className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#0a0907] text-white sm:-mt-20"
     >
+      <HeaderPark />
       <Image src="/hero/oficina-3d.webp" alt="" fill priority sizes="100vw" className="-z-20 scale-105 object-cover blur-md" />
       <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-r from-black/85 via-black/65 to-black/35" />
 
@@ -270,7 +272,12 @@ function CategoryHero({ category, search }: { category: CategoryShowcase; search
             </p>
           ) : null}
           {/* Busca dentro da categoria: a lista abaixo filtra enquanto a pessoa digita. */}
-          <CategorySearch basePath={buildCategoryHref(category.id)} categoryName={category.name} initial={search} />
+          <HeroSearch
+            basePath={buildCategoryHref(category.id)}
+            placeholder={`Buscar em ${category.name}`}
+            initial={search}
+            className="mt-7"
+          />
         </div>
       </div>
     </section>

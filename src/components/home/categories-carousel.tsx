@@ -35,7 +35,7 @@ export function CategoriesCarousel({ title, categories }: { title: string; categ
               )}
               <div
                 aria-hidden
-                className="absolute inset-0 bg-linear-to-t from-black/90 via-black/35 to-transparent transition-opacity duration-300 group-hover:from-black/95"
+                className="absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/75 via-black/35 to-transparent transition-colors duration-300 group-hover:from-black/85"
               />
               <div className="absolute inset-x-0 bottom-0 p-5 text-white">
                 <h3 className="flex items-center gap-1.5 text-lg leading-tight font-semibold">

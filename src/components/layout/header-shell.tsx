@@ -8,8 +8,8 @@ const SCROLL_THRESHOLD = 24
 /**
  * Casca do cabeçalho. Ativo (ao rolar e nas páginas sem hero), é uma barra de vidro escuro presa ao topo,
  * com os cantos de baixo bem arredondados; texto e logo sempre claros, nos dois temas. Numa página com hero escuro (que marca
- * `data-header-park`), no topo ele fica "estacionado": transparente, texto e logo claros. Essa troca é
- * feita só por CSS (globals.css, `:has`), sem ler a rota: não trava a pré-renderização nem pisca.
+ * `data-header-park` e monta <HeaderPark />), no topo ele fica "estacionado": transparente, texto e logo
+ * claros. Essa troca é feita por CSS (globals.css), sem ler a rota: não trava a pré-renderização nem pisca.
  */
 export function HeaderShell({ children }: { children: ReactNode }) {
   const [scrolled, setScrolled] = useState(false)

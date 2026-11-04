@@ -24,6 +24,25 @@ export function parseMakerWorldId(input: string): string | null {
   return url.pathname.match(/\/models\/(\d{1,12})(?:[-/]|$)/)?.[1] ?? null
 }
 
+/** Idioma usado quando o link não traz nenhum (a loja é em português). */
+export const DEFAULT_MAKERWORLD_LANG = "pt"
+
+/**
+ * Idioma do link do MakerWorld (o trecho antes de /models/, ex.: "pt", "en", "zh-cn"); `null` se não houver.
+ * Ex.: https://makerworld.com/pt/models/3280507-feliz-natal → "pt".
+ */
+export function parseMakerWorldLang(input: string): string | null {
+  const text = input.trim()
+  if (!text) return null
+  try {
+    const url = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(text) ? text : `https://${text}`)
+    if (!HOST.test(url.hostname)) return null
+    return url.pathname.match(/^\/([a-z]{2}(?:-[a-z]{2,4})?)\/models\//i)?.[1].toLowerCase() ?? null
+  } catch {
+    return null
+  }
+}
+
 /**
  * Se a licença do modelo permite vender as impressões: `true`, `false` ou `null` (desconhecida).
  * - Creative Commons com "NC" (não comercial) e a Standard Digital File License do MakerWorld (uso
@@ -47,7 +66,7 @@ export function licenseLabel(license: string | null) {
   return /^(BY|0$)/i.test(value) ? `CC ${value.toUpperCase()}` : value
 }
 
-/** Link limpo do modelo: só domínio e ID. */
-export function makerWorldModelUrl(id: string) {
-  return `https://makerworld.com/en/models/${id}`
+/** Link limpo do modelo: domínio, idioma (português por padrão) e ID. */
+export function makerWorldModelUrl(id: string, lang: string = DEFAULT_MAKERWORLD_LANG) {
+  return `https://makerworld.com/${lang}/models/${id}`
 }

@@ -272,22 +272,25 @@
 /*
  * Cabeçalho estacionado no hero (src/components/layout/header-shell.tsx): numa página que marca
  * [data-header-park] e ainda sem rolar, a barra fica transparente, com texto e logo claros.
+ * Vale quando um hero visível avisa pelo atributo em <html> (HeaderPark, depois de carregar) ou quando há um
+ * hero que não está escondido, nem ele nem um ancestral (antes de carregar o JS). O Next guarda páginas já
+ * visitadas escondidas com display: none inline, e um hero escondido não pode deixar o cabeçalho transparente.
  * Fora de @layer de propósito, para vencer as utilities do Tailwind.
  */
-body:has([data-header-park]) [data-site-header]:not([data-scrolled="true"]) {
+:is(html[data-header-parks], html:has([data-header-park]:not([style*="display: none"], [style*="display: none"] *))) [data-site-header]:not([data-scrolled="true"]) {
   translate: none;
 }
-body:has([data-header-park]) [data-site-header]:not([data-scrolled="true"]) .site-header-bar {
+:is(html[data-header-parks], html:has([data-header-park]:not([style*="display: none"], [style*="display: none"] *))) [data-site-header]:not([data-scrolled="true"]) .site-header-bar {
   border-radius: var(--radius-xl);
   border-color: transparent;
   background-color: transparent;
   box-shadow: none;
   backdrop-filter: none;
 }
-body:has([data-header-park]) [data-site-header]:not([data-scrolled="true"]) .brand-logo-on-dark {
+:is(html[data-header-parks], html:has([data-header-park]:not([style*="display: none"], [style*="display: none"] *))) [data-site-header]:not([data-scrolled="true"]) .brand-logo-on-dark {
   display: block;
 }
-body:has([data-header-park]) [data-site-header]:not([data-scrolled="true"]) .brand-logo-on-light {
+:is(html[data-header-parks], html:has([data-header-park]:not([style*="display: none"], [style*="display: none"] *))) [data-site-header]:not([data-scrolled="true"]) .brand-logo-on-light {
   display: none;
 }
 

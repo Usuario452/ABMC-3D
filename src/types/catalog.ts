@@ -20,6 +20,8 @@ export type ProductRow = {
   /** Anotação interna (só no painel). */
   internal_notes: string
   price_cents: number
+  /** Preço original (riscado) em centavos; null sem desconto. Sempre maior que price_cents. */
+  compare_at_price_cents: number | null
   category_id: string
   is_active: boolean
   is_available: boolean
@@ -56,6 +58,8 @@ export type ProductCardData = {
   name: string
   slug: string
   priceCents: number
+  /** Preço original (riscado); null sem desconto. */
+  compareAtPriceCents: number | null
   isAvailable: boolean
   category: CategorySummary | null
   image: ProductImage | null

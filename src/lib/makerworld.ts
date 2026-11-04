@@ -1,5 +1,5 @@
 import "server-only"
-import { makerWorldModelUrl } from "@/lib/makerworld-link"
+import { DEFAULT_MAKERWORLD_LANG, makerWorldModelUrl } from "@/lib/makerworld-link"
 
 /**
  * Importação de modelos do MakerWorld a partir do link da página.
@@ -22,7 +22,7 @@ export type MakerWorldModel = {
   url: string
 }
 
-export { parseMakerWorldId } from "@/lib/makerworld-link"
+export { parseMakerWorldId, parseMakerWorldLang } from "@/lib/makerworld-link"
 
 export function isMakerWorldImage(input: string) {
   try {
@@ -72,6 +72,9 @@ type ApiPicture = { url?: string }
 type ApiResponse = {
   title?: string
   summary?: string
+  /** Tradução para o idioma pedido (Accept-Language), quando o MakerWorld tem; vazia quando não tem. */
+  titleTranslated?: string
+  summaryTranslated?: string
   license?: string
   coverUrl?: string
   designExtension?: { design_pictures?: ApiPicture[] }
@@ -89,9 +92,20 @@ const cache = new Map<string, { at: number; data: ApiResponse }>()
 
 type ApiLookup = { ok: true; data: ApiResponse } | { ok: false; reason: "not_found" | "blocked" }
 
-async function requestModel(id: string): Promise<ApiLookup> {
+/** Accept-Language para o idioma do link: português primeiro, inglês como reserva. */
+function acceptLanguage(lang: string) {
+  return lang.startsWith("pt") ? "pt-BR,pt;q=0.9,en;q=0.8" : `${lang},en;q=0.8`
+}
+
+async function requestModel(id: string, lang: string): Promise<ApiLookup> {
   const response = await fetch(`${API}/${id}`, {
-    headers: { Accept: "application/json", "User-Agent": "Mozilla/5.0 (KuboStudio catalog import)" },
+    headers: {
+      Accept: "application/json",
+      // Pede o idioma do link (português por padrão): o MakerWorld devolve título e descrição
+      // traduzidos quando tem a tradução.
+      "Accept-Language": acceptLanguage(lang),
+      "User-Agent": "Mozilla/5.0 (KuboStudio catalog import)",
+    },
     signal: AbortSignal.timeout(TIMEOUT_MS),
     cache: "no-store",
   })
@@ -108,21 +122,22 @@ async function requestModel(id: string): Promise<ApiLookup> {
  * Consulta o modelo, repetindo com pausas crescentes quando há bloqueio ou falha de conexão: o bloqueio
  * costuma ser passageiro, e é o mesmo que o usuário faria clicando de novo, só que sem ele precisar.
  */
-async function loadModel(id: string): Promise<ApiLookup> {
-  const cached = cache.get(id)
+async function loadModel(id: string, lang: string): Promise<ApiLookup> {
+  const key = `${lang}:${id}`
+  const cached = cache.get(key)
   if (cached && Date.now() - cached.at < CACHE_MS) return { ok: true, data: cached.data }
 
   for (let attempt = 0; ; attempt++) {
     let result: ApiLookup | null = null
     try {
-      result = await requestModel(id)
+      result = await requestModel(id, lang)
     } catch (error) {
       if (attempt >= RETRY_DELAYS_MS.length) throw error
     }
     if (result?.ok) {
       // Mantém só os mais recentes.
       if (cache.size >= 50) cache.delete(cache.keys().next().value!)
-      cache.set(id, { at: Date.now(), data: result.data })
+      cache.set(key, { at: Date.now(), data: result.data })
       return result
     }
     if (result?.reason === "not_found" || attempt >= RETRY_DELAYS_MS.length) return result ?? { ok: false, reason: "blocked" }
@@ -130,8 +145,12 @@ async function loadModel(id: string): Promise<ApiLookup> {
   }
 }
 
-export async function fetchMakerWorldModel(id: string, maxImages: number): Promise<MakerWorldLookup> {
-  const lookup = await loadModel(id)
+export async function fetchMakerWorldModel(
+  id: string,
+  maxImages: number,
+  lang: string = DEFAULT_MAKERWORLD_LANG,
+): Promise<MakerWorldLookup> {
+  const lookup = await loadModel(id, lang)
   if (!lookup.ok) return lookup
   const data = lookup.data
   if (!data.title) return { ok: false, reason: "not_found" }
@@ -144,9 +163,11 @@ export async function fetchMakerWorldModel(id: string, maxImages: number): Promi
   ]
   const images = [...new Set(candidates.filter((url): url is string => Boolean(url && isMakerWorldImage(url))))]
 
-  const name = data.title.trim().slice(0, 120)
+  // Em português quando o MakerWorld tem a tradução; senão, o texto original do modelo.
+  const name = (data.titleTranslated?.trim() || data.title).trim().slice(0, 120)
+  const summary = data.summaryTranslated?.trim() || data.summary || ""
   // A descrição costuma abrir com o próprio nome como título; na loja o nome já aparece acima.
-  const description = htmlToMarkdown(data.summary ?? "").replace(/^##\s+(.+)\n*/, (heading, title: string) =>
+  const description = htmlToMarkdown(summary).replace(/^##\s+(.+)\n*/, (heading, title: string) =>
     title.trim().toLowerCase() === name.toLowerCase() ? "" : heading,
   )
 
@@ -157,7 +178,7 @@ export async function fetchMakerWorldModel(id: string, maxImages: number): Promi
       description: description.slice(0, 5000),
       images: images.slice(0, maxImages),
       license: data.license?.trim() || null,
-      url: makerWorldModelUrl(id),
+      url: makerWorldModelUrl(id, lang),
     },
   }
 }

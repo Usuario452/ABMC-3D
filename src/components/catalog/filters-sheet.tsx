@@ -15,7 +15,7 @@ export function FiltersSheet({ activeCount, children }: { activeCount: number; c
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" className="h-10 lg:hidden">
+        <Button variant="outline" className="h-9 bg-card lg:hidden">
           <HiOutlineAdjustmentsHorizontal aria-hidden />
           Filtros
           {activeCount > 0 ? (
