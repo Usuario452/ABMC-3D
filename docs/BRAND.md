@@ -1,56 +1,44 @@
-# KuboStudio — Guia da marca
+# ABMC 3D — Guia da marca
 
 Referência rápida da identidade visual usada no site e no painel. Os valores abaixo são os mesmos que o código usa (`src/app/globals.css` e `src/config/site.ts`); ao mudar a marca, atualize os dois lugares.
 
-**Conceito:** fabricação por impressão 3D. Fundo preto, texto branco e um símbolo dourado feito de facetas angulares (um "K" dobrado, como camadas de material), que também remete ao cubo de "Kubo".
+**Conceito:** soluções em impressão 3D. Logo com o cubo da ABMC 3D e destaque em prata.
 
 ---
 
 ## Arquivos do logo
 
-Todos em `public/brand/`.
+Todos em `public/brand/`, com fundo transparente.
 
 | Arquivo | Uso |
 |---|---|
-| `kubostudio-logo.png` | **Original**, com fundo preto. Fonte de tudo que está abaixo; não editar. |
-| `kubostudio-logo-light.png` | Logo completo, fundo transparente, **texto branco**. Para fundos escuros. |
-| `kubostudio-logo-dark.png` | Logo completo, fundo transparente, **texto escuro**. Para fundos claros (papel, documentos, e-mail, fundo branco). |
-| `kubostudio-icon.png` | Só o símbolo, **1:1** (1024 × 1024), fundo transparente. |
-| `kubostudio-icon-on-dark.png` | Só o símbolo, **1:1** (1024 × 1024), sobre o preto da marca. Para foto de perfil (WhatsApp, Instagram, etc.), que não aceitam transparência bem. |
-
-Os quatro arquivos derivados são gerados por `npm run brand:build` (`scripts/brand-assets.mts`) a partir do original. Se o logo original mudar, rode o comando de novo.
-
-**Limitação:** o original é uma imagem (1983 × 793 px), não um vetor. O ícone 1:1 de 1024 px é uma ampliação dele, então as bordas são levemente suaves. Para impressão em grande formato, sinalização ou bordados, peça o arquivo vetorial (SVG, AI ou PDF) a quem criou a marca e guarde-o aqui.
+| `abmc-logo-light.png` | Logo horizontal, **texto claro**. Para fundos escuros. |
+| `abmc-logo-dark.png` | Logo horizontal, **texto escuro**. Para fundos claros. |
+| `abmc-logo-stacked-light.png` | Logo empilhado, texto claro. |
+| `abmc-logo-stacked-dark.png` | Logo empilhado, texto escuro. |
+| `abmc-icon.png` | Só o símbolo (cubo), 1:1. |
+| `abmc-icon-on-dark.png` | Só o símbolo, 1:1, sobre fundo escuro. Para foto de perfil (WhatsApp, Instagram, etc.). |
 
 ### Como usar
 
-- **Fundo escuro ou foto escurecida:** `kubostudio-logo-light.png`.
-- **Fundo claro:** `kubostudio-logo-dark.png`. O símbolo dourado funciona bem nos dois.
-- **Espaço de respiro:** deixe ao redor do logo ao menos a altura da letra "K" do símbolo.
-- **Tamanho mínimo:** 120 px de largura para o logo completo; 24 px para o símbolo sozinho.
-- **Não faça:** esticar ou girar o logo, trocar as cores do símbolo, aplicar sombras ou contornos, colocar o texto branco sobre fundo claro.
+- **Fundo escuro ou foto escurecida:** `abmc-logo-light.png`.
+- **Fundo claro:** `abmc-logo-dark.png`.
+- **Não faça:** esticar ou girar o logo, trocar as cores do símbolo, aplicar sombras ou contornos, colocar o texto claro sobre fundo claro.
 
 ---
 
 ## Cores
 
+A cor de destaque da marca é **prata**. Os tokens mantêm o nome `--brand-gold*` do kit original para não mexer nos componentes.
+
 | Token | Valor | Uso |
 |---|---|---|
-| `--brand-background` | `#080808` | Fundo das páginas |
-| `--brand-surface` | `#111111` | Cartões e painéis |
-| `--brand-surface-elevated` | `#181818` | Campos, menus, superfícies elevadas |
-| `--brand-border` | `#292929` | Bordas e divisórias |
-| `--brand-foreground` | `#f7f7f7` | Texto principal |
-| `--brand-muted-foreground` | `#a3a3a3` | Texto secundário |
-| `--brand-gold` | `#efc326` | **Cor de destaque**: botões, links, foco |
-| `--brand-gold-light` | `#fae942` | Brilho do dourado, estados de hover |
-| `--brand-gold-dark` | `#ca7b17` | Sombra do dourado, gradientes |
-| `--brand-success` | `#22c55e` | Confirmações |
-| `--brand-destructive` | `#ef4444` | Erros e ações de exclusão |
+| `--brand-gold` | `#b9bec5` | **Cor de destaque**: botões, links, foco |
+| `--brand-gold-light` | `#e6e9ed` | Brilho do prata, estados de hover |
+| `--brand-gold-dark` | `#7a7f88` | Sombra do prata, gradientes |
+| `--gold` (tema claro) | `#5d626a` | Prata de texto e ícones, mais escuro para manter o contraste |
 
-O gradiente dourado do símbolo vai de `#fae942` (claro) a `#efc326` e `#ca7b17` (escuro), medidos no arquivo do símbolo. No código: classes `bg-gold-gradient` e `text-gold-gradient`.
-
-**Regra de uso:** o dourado é o único destaque. Use-o em poucos pontos por tela (botão principal, ícones de ênfase, foco), nunca como cor de fundo grande.
+Fundos, superfícies, bordas e textos de cada tema estão em `src/app/globals.css` (`:root` para o claro e `.dark` para o escuro).
 
 ---
 
@@ -97,4 +85,4 @@ Direto, próximo e prático, em português do Brasil. Fala de "pedido pelo Whats
 
 - `src/app/icon.png` e `src/app/apple-icon.png`: ícone da aba e do iPhone.
 - `src/app/opengraph-image.png`: imagem exibida quando o link da loja é compartilhado.
-- Foto de perfil em redes sociais e WhatsApp Business: `public/brand/kubostudio-icon-on-dark.png`.
+- Foto de perfil em redes sociais e WhatsApp Business: `public/brand/abmc-icon-on-dark.png`.

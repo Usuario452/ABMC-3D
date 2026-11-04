@@ -12,14 +12,14 @@ const highlights: { icon: IconType; label: string }[] = [
 /** Ilustração e mensagem da tela de login (visível a partir de lg), sobre o mesmo fundo do formulário. */
 export function LoginShowcase() {
   return (
-    <section className="hidden flex-col gap-8 lg:flex" aria-label="KuboStudio">
+    <section className="hidden flex-col gap-8 lg:flex" aria-label="ABMC 3D">
       <LoginArtwork className="mx-auto max-h-[44dvh] max-w-md xl:max-w-xl 2xl:max-w-2xl" />
 
       <div className="space-y-6">
         <div className="space-y-3">
           <p className="text-xs font-semibold tracking-[0.2em] text-gold uppercase">{siteConfig.texts.tagline}</p>
           <h2 className="max-w-lg text-3xl leading-tight font-bold xl:text-4xl 2xl:text-5xl">
-            Gerencie o catálogo da <span className="text-gold-gradient">KuboStudio</span>
+            Gerencie o catálogo da <span className="text-gold-gradient">ABMC 3D</span>
           </h2>
           <p className="max-w-lg text-sm text-muted-foreground xl:text-base 2xl:text-lg">
             Cadastre produtos, organize categorias e publique imagens otimizadas. Os pedidos chegam direto no WhatsApp

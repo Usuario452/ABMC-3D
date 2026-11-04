@@ -64,7 +64,7 @@ type Values = Record<FieldKey, string>;
  * Últimos valores digitados, salvos neste navegador para não precisar redigitar (impressora, hora de
  * trabalho, margem…). A chave é a mesma de quando só a oficina era salva, então o que já estava salvo continua.
  */
-const STORAGE_KEY = "kubostudio:calculadora:oficina";
+const STORAGE_KEY = "abmc3d:calculadora:oficina";
 
 /** Casas decimais de cada campo (zero = inteiro). Os de dinheiro completam as duas casas ao sair. */
 const DECIMALS: Record<FieldKey, number> = {

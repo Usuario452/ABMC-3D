@@ -4,7 +4,7 @@ import { useEffect, useRef, type CSSProperties } from "react"
 import { cn } from "@/lib/utils"
 
 /**
- * Ilustração original da tela de login: sobre a mesa de impressão, o "Kubo" (cubo grande) é construído
+ * Ilustração original da tela de login: sobre a mesa de impressão, o cubo grande é construído
  * bloco a bloco, um de cada vez, cada um caindo no lugar com um pequeno quique. Depois de pronto ele
  * fica um instante e a construção recomeça. Vetorial, usa os tokens de cor da marca e anima com CSS
  * (com prefers-reduced-motion: cubo pronto e parado).
@@ -87,13 +87,13 @@ const STEP = (BUILD_END - BUILD_START) / BLOCKS.length
 
 /** Um quadro-chave por bloco: cai, quica, brilha ao assentar e fica até o fim do ciclo. */
 const ANIMATION_CSS = `
-.kubo-block{animation-duration:${CYCLE}s;animation-timing-function:cubic-bezier(.33,0,.2,1);animation-iteration-count:infinite;transition:translate .8s cubic-bezier(.22,1,.36,1)}
-.kubo-depth{transition:translate 1s cubic-bezier(.22,1,.36,1)}
+.cube-block{animation-duration:${CYCLE}s;animation-timing-function:cubic-bezier(.33,0,.2,1);animation-iteration-count:infinite;transition:translate .8s cubic-bezier(.22,1,.36,1)}
+.cube-depth{transition:translate 1s cubic-bezier(.22,1,.36,1)}
 ${BLOCKS.map((_, i) => {
   const at = BUILD_START + i * STEP
   return `@keyframes kb${i}{0%,${pct(at)}{opacity:0;transform:translateY(-64px);filter:brightness(1)}${pct(at + 1.6)}{opacity:1}${pct(at + 3.0)}{transform:translateY(2px);filter:brightness(1.5)}${pct(at + 4.8)}{transform:translateY(0);filter:brightness(1)}${HOLD_END}%{opacity:1}97%,100%{opacity:0;transform:translateY(0)}}`
 }).join("\n")}
-@media (prefers-reduced-motion: reduce){.kubo-block{animation:none;transition:none}.kubo-depth{transition:none}}
+@media (prefers-reduced-motion: reduce){.cube-block{animation:none;transition:none}.cube-depth{transition:none}}
 `
 
 const SPARKS = [
@@ -197,28 +197,28 @@ export function LoginArtwork({ className }: { className?: string }) {
     <svg ref={svgRef} viewBox="0 0 600 480" aria-hidden focusable="false" className={cn("h-auto w-full", className)}>
       <style>{ANIMATION_CSS}</style>
       <defs>
-        <linearGradient id="kubo-top" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="cube-top" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" style={stop("#fff6b0")} />
           <stop offset="1" style={stop("var(--brand-gold-light)")} />
         </linearGradient>
-        <linearGradient id="kubo-left" x1="0" y1="0" x2="0.4" y2="1">
+        <linearGradient id="cube-left" x1="0" y1="0" x2="0.4" y2="1">
           <stop offset="0" style={stop("var(--brand-gold-light)")} />
           <stop offset="0.5" style={stop("var(--brand-gold)")} />
           <stop offset="1" style={stop("var(--brand-gold-dark)")} />
         </linearGradient>
-        <linearGradient id="kubo-right" x1="1" y1="0" x2="0.4" y2="1">
+        <linearGradient id="cube-right" x1="1" y1="0" x2="0.4" y2="1">
           <stop offset="0" style={stop("#c98a00")} />
           <stop offset="1" style={stop("#5e3d00")} />
         </linearGradient>
-        <radialGradient id="kubo-floor-glow" cx="0.5" cy="0.5" r="0.5">
+        <radialGradient id="cube-floor-glow" cx="0.5" cy="0.5" r="0.5">
           <stop offset="0" style={stop("var(--brand-gold)")} stopOpacity="0.4" />
           <stop offset="1" style={stop("var(--brand-gold)")} stopOpacity="0" />
         </radialGradient>
       </defs>
 
       {/* Brilho e mesa de impressão (camada mais ao fundo) */}
-      <g className="kubo-depth" data-depth="0.35">
-        <ellipse cx={CX} cy={baseCenterY + 40} rx="250" ry="92" fill="url(#kubo-floor-glow)" />
+      <g className="cube-depth" data-depth="0.35">
+        <ellipse cx={CX} cy={baseCenterY + 40} rx="250" ry="92" fill="url(#cube-floor-glow)" />
         <polygon
           points={points(plateL, plateF, move(plateF, PLATE_THICKNESS), move(plateL, PLATE_THICKNESS))}
           fill="var(--muted)"
@@ -234,18 +234,18 @@ export function LoginArtwork({ className }: { className?: string }) {
       </g>
 
       {/* Blocos do cubo, caindo um a um */}
-      <g className="kubo-depth" data-depth="1">
+      <g className="cube-depth" data-depth="1">
         {BLOCKS.map((block, i) => (
-          <g key={i} data-block className="kubo-block" style={{ animationName: `kb${i}` }}>
-            <polygon points={block.left} fill="url(#kubo-left)" stroke="#000" strokeOpacity="0.4" strokeWidth="0.6" strokeLinejoin="round" />
-            <polygon points={block.right} fill="url(#kubo-right)" stroke="#000" strokeOpacity="0.45" strokeWidth="0.6" strokeLinejoin="round" />
-            <polygon points={block.top} fill="url(#kubo-top)" stroke="#8a5a00" strokeOpacity="0.5" strokeWidth="0.6" strokeLinejoin="round" />
+          <g key={i} data-block className="cube-block" style={{ animationName: `kb${i}` }}>
+            <polygon points={block.left} fill="url(#cube-left)" stroke="#000" strokeOpacity="0.4" strokeWidth="0.6" strokeLinejoin="round" />
+            <polygon points={block.right} fill="url(#cube-right)" stroke="#000" strokeOpacity="0.45" strokeWidth="0.6" strokeLinejoin="round" />
+            <polygon points={block.top} fill="url(#cube-top)" stroke="#8a5a00" strokeOpacity="0.5" strokeWidth="0.6" strokeLinejoin="round" />
           </g>
         ))}
       </g>
 
       {/* Fagulhas flutuantes (camada mais próxima) */}
-      <g className="kubo-depth" data-depth="1.7">
+      <g className="cube-depth" data-depth="1.7">
         {SPARKS.map((spark, i) => (
           <g key={i} className="login-float" style={sparkVars(i)}>
             <polygon

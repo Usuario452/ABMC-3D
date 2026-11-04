@@ -10,7 +10,7 @@ export const MAX_PRESIGN_SECONDS = 7 * 24 * 60 * 60
 
 type PresignInput = {
   host: string
-  /** Caminho já com o bucket, sem codificar (ex.: "/kubostudio/products/abc/foto.webp"). */
+  /** Caminho já com o bucket, sem codificar (ex.: "/abmc3d/products/abc/foto.webp"). */
   path: string
   accessKeyId: string
   secretAccessKey: string

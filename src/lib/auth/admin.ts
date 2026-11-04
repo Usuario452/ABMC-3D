@@ -17,7 +17,7 @@ export type AdminStatus =
   | { status: "error"; message: string }
 
 /** Nome do cookie de sessão do painel (também lido pelo proxy). */
-export const SESSION_COOKIE = "kubo_admin_session"
+export const SESSION_COOKIE = "abmc_admin_session"
 /** Com "lembrar de mim": cookie persistente. Sem: cookie de sessão (some ao fechar o navegador). */
 const REMEMBER_DAYS = 30
 const SHORT_SESSION_HOURS = 12

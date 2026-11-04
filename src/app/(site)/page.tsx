@@ -164,7 +164,7 @@ async function AllProductsSection() {
         <StateMessage
           icon={HiOutlineCubeTransparent}
           title="Catálogo em preparação"
-          description="Os produtos da KuboStudio serão publicados aqui em breve."
+          description="Os produtos da ABMC 3D serão publicados aqui em breve."
         />
       </>
     )

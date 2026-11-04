@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 
 const LOGIN_PATH = "/admin/login"
 // Mesmo valor de SESSION_COOKIE em src/lib/auth/admin.ts (o proxy não importa código de servidor).
-const SESSION_COOKIE = "kubo_admin_session"
+const SESSION_COOKIE = "abmc_admin_session"
 
 /**
  * Redireciona para o login quem acessa o painel sem cookie de sessão.

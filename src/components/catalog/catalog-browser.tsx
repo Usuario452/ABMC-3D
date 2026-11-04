@@ -150,7 +150,7 @@ async function Results({ query, categoryLabel }: BrowserProps) {
           icon={HiOutlineCubeTransparent}
           badge={HiOutlineSparkles}
           title="Catálogo em preparação"
-          description="Os produtos da KuboStudio serão publicados aqui em breve. Enquanto isso, peça algo sob medida."
+          description="Os produtos da ABMC 3D serão publicados aqui em breve. Enquanto isso, peça algo sob medida."
           actions={
             contactUrl ? (
               <Button asChild>

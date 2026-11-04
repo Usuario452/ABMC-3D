@@ -118,16 +118,16 @@ describe("bloqueio de APIs externas", () => {
 
 describe("administradores e sessões", () => {
   it("exige e-mail em minúsculas e único", async () => {
-    expect(await sqlState(`insert into admin_users (email, password_hash) values ('Admin@Kubo.com', 'x')`)).toBe("23514")
-    expect(await sqlState(`insert into admin_users (email, password_hash) values ('admin@kubo.com', 'x')`)).toBe("ok")
-    expect(await sqlState(`insert into admin_users (email, password_hash) values ('admin@kubo.com', 'y')`)).toBe("23505")
+    expect(await sqlState(`insert into admin_users (email, password_hash) values ('Admin@Abmc3d.com', 'x')`)).toBe("23514")
+    expect(await sqlState(`insert into admin_users (email, password_hash) values ('admin@abmc3d.com', 'x')`)).toBe("ok")
+    expect(await sqlState(`insert into admin_users (email, password_hash) values ('admin@abmc3d.com', 'y')`)).toBe("23505")
   })
 
   it("encerra as sessões quando o administrador é removido", async () => {
     await db.exec(`
       insert into admin_sessions (token_hash, admin_id, expires_at)
-      select 'hash-1', id, now() + interval '1 day' from admin_users where email = 'admin@kubo.com';
-      delete from admin_users where email = 'admin@kubo.com';
+      select 'hash-1', id, now() + interval '1 day' from admin_users where email = 'admin@abmc3d.com';
+      delete from admin_users where email = 'admin@abmc3d.com';
     `)
     const { rows } = await db.query<{ total: number }>(`select count(*)::int as total from admin_sessions`)
     expect(rows[0].total).toBe(0)

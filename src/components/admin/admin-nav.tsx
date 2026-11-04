@@ -66,8 +66,8 @@ const STORE: NavItem[] = [
 // useSyncExternalStore evita diferença entre o HTML do servidor e o do navegador.
 // ---------------------------------------------------------------------------
 
-const STORAGE_KEY = "kubostudio:admin-sidebar-collapsed"
-const CHANGE_EVENT = "kubostudio:admin-sidebar"
+const STORAGE_KEY = "abmc3d:admin-sidebar-collapsed"
+const CHANGE_EVENT = "abmc3d:admin-sidebar"
 
 function subscribe(onChange: () => void) {
   window.addEventListener("storage", onChange)
@@ -247,7 +247,7 @@ function SidebarContent({
       <div className={cn("flex items-center", collapsed ? "flex-col gap-3 pt-1" : "justify-between pt-1 pl-1")}>
         <Link
           href="/admin"
-          aria-label="Painel KuboStudio"
+          aria-label="Painel ABMC 3D"
           onClick={onNavigate}
           className="block rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >

@@ -14,7 +14,7 @@ import { requireDatabaseEnv } from "@/lib/env"
  */
 export type Sql = postgres.Sql
 
-const globalForDb = globalThis as unknown as { kuboSql?: Sql }
+const globalForDb = globalThis as unknown as { appSql?: Sql }
 
 function createSql(): Sql {
   const env = requireDatabaseEnv()
@@ -30,8 +30,8 @@ function createSql(): Sql {
 
 /** Cliente SQL. Lança MissingConfigError se DATABASE_URL não estiver definida. */
 export function db(): Sql {
-  globalForDb.kuboSql ??= createSql()
-  return globalForDb.kuboSql
+  globalForDb.appSql ??= createSql()
+  return globalForDb.appSql
 }
 
 /**

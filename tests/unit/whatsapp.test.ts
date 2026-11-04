@@ -28,8 +28,8 @@ describe("parseWhatsAppNumber", () => {
 describe("buildOrderMessage", () => {
   const message = buildOrderMessage(lines).replace(/ /g, " ")
 
-  it("identifica a KuboStudio", () => {
-    expect(message).toContain("KuboStudio")
+  it("identifica a ABMC 3D", () => {
+    expect(message).toContain("ABMC 3D")
   })
 
   it("lista nome, quantidade, preço unitário e subtotal de cada item", () => {

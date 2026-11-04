@@ -1,22 +1,22 @@
 # PostgreSQL local para desenvolvimento (npm run db:up).
-# DATABASE_URL=postgresql://kubo:kubo@127.0.0.1:5433/kubostudio
+# DATABASE_URL=postgresql://abmc:abmc@127.0.0.1:5433/abmc3d
 services:
   db:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: kubo
-      POSTGRES_PASSWORD: kubo
-      POSTGRES_DB: kubostudio
+      POSTGRES_USER: abmc
+      POSTGRES_PASSWORD: abmc
+      POSTGRES_DB: abmc3d
     ports:
       - "127.0.0.1:5433:5432"
     volumes:
-      - kubostudio-db:/var/lib/postgresql/data
+      - abmc3d-db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kubo -d kubostudio"]
+      test: ["CMD-SHELL", "pg_isready -U abmc -d abmc3d"]
       interval: 2s
       timeout: 3s
       retries: 20
 
 volumes:
-  kubostudio-db:
+  abmc3d-db:

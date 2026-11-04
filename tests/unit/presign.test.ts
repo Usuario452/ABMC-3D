@@ -7,7 +7,7 @@ const credentials = { accessKeyId: "AKIDEXAMPLE", secretAccessKey: "wJalrXUtnFEM
 describe("presignGetUrl", () => {
   it("gera a mesma assinatura que o aws4fetch", async () => {
     const host = "conta123.r2.cloudflarestorage.com"
-    const path = "/kubostudio/products/2f1d7c1e-0000-4000-8000-000000000000/1730000000000-abc.webp"
+    const path = "/abmc3d/products/2f1d7c1e-0000-4000-8000-000000000000/1730000000000-abc.webp"
     const amzDate = "20261102T000000Z"
 
     const ours = presignGetUrl({ host, path, region: "auto", amzDate, expiresSeconds: MAX_PRESIGN_SECONDS, ...credentials })

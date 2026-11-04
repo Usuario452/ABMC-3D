@@ -104,7 +104,7 @@ async function requestModel(id: string, lang: string): Promise<ApiLookup> {
       // Pede o idioma do link (português por padrão): o MakerWorld devolve título e descrição
       // traduzidos quando tem a tradução.
       "Accept-Language": acceptLanguage(lang),
-      "User-Agent": "Mozilla/5.0 (KuboStudio catalog import)",
+      "User-Agent": "Mozilla/5.0 (ABMC 3D catalog import)",
     },
     signal: AbortSignal.timeout(TIMEOUT_MS),
     cache: "no-store",

@@ -1,5 +1,5 @@
 {
-  "name": "kubostudio",
+  "name": "abmc-3d",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,7 +11,6 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "brand:build": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/brand-assets.mts",
     "check": "npm run typecheck && npm run lint && npm run test && npm run build",
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down",

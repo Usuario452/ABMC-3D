@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Toaster } from "@/components/ui/sonner"
 
 export const metadata: Metadata = {
-  title: { default: "Painel", template: "%s | Painel KuboStudio" },
+  title: { default: "Painel", template: "%s | Painel ABMC 3D" },
   robots: { index: false, follow: false },
 }
 

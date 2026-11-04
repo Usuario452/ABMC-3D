@@ -1,9 +1,9 @@
-# KuboStudio — Catálogo
+# ABMC 3D — Catálogo
 
 Catálogo de produtos impressos em 3D com carrinho, finalização de pedidos pelo WhatsApp e painel administrativo.
 
 - **Stack:** Next.js 16 (App Router, Cache Components, React Server Components), TypeScript estrito, Tailwind CSS 4, shadcn/ui (Radix), React Icons, PostgreSQL puro (`postgres.js`, SQL direto, sem ORM), login próprio do painel, Cloudflare R2 (imagens), sharp, Zod, React Hook Form, ESLint e Vitest.
-- **Sem pagamentos online:** o cliente monta o carrinho e envia o pedido pelo WhatsApp. Disponibilidade, prazo e pagamento são combinados diretamente com a KuboStudio.
+- **Sem pagamentos online:** o cliente monta o carrinho e envia o pedido pelo WhatsApp. Disponibilidade, prazo e pagamento são combinados diretamente com a ABMC 3D.
 
 ---
 
@@ -76,7 +76,7 @@ npm run db:seed:dev
 npm run dev
 ```
 
-- `db:up` sobe o PostgreSQL do `docker-compose.yml` em `127.0.0.1:5433` (dados no volume `kubostudio-db`).
+- `db:up` sobe o PostgreSQL do `docker-compose.yml` em `127.0.0.1:5433` (dados no volume `abmc3d-db`).
 - `db:migrate` aplica `db/migrations/*.sql` em ordem; cada arquivo roda uma única vez (registro em `schema_migrations`).
 - `db:seed:dev` cria o administrador de desenvolvimento. O e-mail e a senha estão em `db/seed/dev.sql`. O script recusa qualquer banco que não seja local.
 - Loja em `http://localhost:3000`; painel em `http://localhost:3000/admin`.
@@ -108,7 +108,7 @@ Rodar `db:create-admin` de novo com o mesmo e-mail redefine a senha e encerra as
 
 As imagens dos produtos ficam no **Cloudflare R2** (sem cobrança de tráfego de saída); o banco guarda apenas o caminho de cada arquivo.
 
-1. Cloudflare → **R2 Object Storage** → crie o bucket (ex.: `kubostudio-images`). Ele pode ficar **privado**.
+1. Cloudflare → **R2 Object Storage** → crie o bucket (ex.: `abmc3d-images`). Ele pode ficar **privado**.
 2. **R2 → Manage API tokens** → crie um token **Object Read & Write** restrito ao bucket.
 3. Preencha `R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID` e `R2_SECRET_ACCESS_KEY`. As chaves `R2_*` ficam só no servidor. Use o mesmo bucket em todos os ambientes que compartilham o banco.
 
@@ -198,7 +198,7 @@ scripts/               Migrations, seed local e criação de administrador
 tests/                 Testes unitários e de banco (PGlite)
 ```
 
-- **Sessão:** o cookie `kubo_admin_session` (httpOnly, `SameSite=Lax`, `Secure` em produção) guarda um token aleatório de 256 bits; o banco guarda só o SHA-256 dele, então um vazamento do banco não expõe sessões válidas. Logout e redefinição de senha apagam as sessões.
+- **Sessão:** o cookie `abmc_admin_session` (httpOnly, `SameSite=Lax`, `Secure` em produção) guarda um token aleatório de 256 bits; o banco guarda só o SHA-256 dele, então um vazamento do banco não expõe sessões válidas. Logout e redefinição de senha apagam as sessões.
 - **Autorização no servidor:** `proxy.ts` só redireciona quem não tem o cookie. A sessão é validada no banco pelo layout do painel, por cada página e por **cada Server Action** (`authorizeAdminAction`). Um cookie forjado não passa.
 - **Senhas:** hash scrypt (N=2^15) com sal aleatório e comparação em tempo constante. E-mail inexistente também passa pelo cálculo do hash, para que o tempo de resposta não revele quais e-mails existem.
 - **SQL:** todas as consultas usam parâmetros do `postgres.js` (sem concatenação de texto). Ordenações e colunas vêm de listas fixas no código.
@@ -207,7 +207,7 @@ tests/                 Testes unitários e de banco (PGlite)
 - **Imagens:** tipo real verificado pelos bytes do arquivo, limite de tamanho no servidor e no bucket, nomes gerados no servidor, caminho obrigatório `products/<id-do-produto>/...` (restrição no banco). Toda imagem é recodificada para WebP no servidor (o arquivo original nunca é armazenado). Falhas no registro desfazem o upload; ao excluir, o registro sai primeiro e depois o arquivo é apagado do R2.
 - **Avisos e erros:** sempre como toast (Sonner, `Toaster` no layout raiz), nunca como caixa de alerta dentro da página. Ações do painel e do carrinho usam `toast` direto; páginas renderizadas no servidor usam `<ToastOnMount>` (`src/components/shared/toast-on-mount.tsx`) e `<ConfigToast>` para variáveis de ambiente ausentes. Estados vazios e falhas de carregamento com botão de tentar novamente seguem como `StateMessage`, e erros de campo continuam abaixo do próprio campo.
 - **Ícones:** somente React Icons (`react-icons/hi2` e `react-icons/fa6` para a marca do WhatsApp). Os componentes do shadcn/ui foram ajustados para não depender de `lucide-react`. Ao adicionar novos componentes com `npx shadcn add`, substitua os imports de `lucide-react` por React Icons e remova a dependência caso ela seja instalada.
-- **Marca:** o kit completo (logo com texto claro e escuro, símbolo 1:1, cores, tipografia e regras de uso) está em `public/brand/` e `docs/BRAND.md`. `kubostudio-logo.png` é o original, sem alterações; as demais versões são geradas por `npm run brand:build`. O componente `BrandLogo` usa o logo transparente. Os ícones do navegador (`src/app/icon.png`, `apple-icon.png`) e a imagem de compartilhamento (`opengraph-image.png`) foram gerados a partir do logo original.
+- **Marca:** o kit (logo horizontal e empilhado com texto claro e escuro, símbolo 1:1, cores e regras de uso) está em `public/brand/` e `docs/BRAND.md`. O componente `BrandLogo` usa o logo transparente. Os ícones do navegador (`src/app/icon.png`, `apple-icon.png`) e a imagem de compartilhamento (`opengraph-image.png`) são da ABMC 3D.
 - **Tema:** cores da marca centralizadas em `src/app/globals.css` (`--brand-*`) e mapeadas para os tokens do shadcn/ui. Tipografia Montserrat via `next/font/google` (baixada no build e servida pelo próprio site).
 
 ---

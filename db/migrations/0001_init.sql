@@ -1,4 +1,4 @@
--- KuboStudio — esquema inicial (PostgreSQL puro, sem dependências de provedor)
+-- ABMC 3D — esquema inicial (PostgreSQL puro, sem dependências de provedor)
 -- Tabelas: categories, products, product_images, admin_users, admin_sessions, admin_login_attempts
 
 -- ---------------------------------------------------------------------------
@@ -33,7 +33,7 @@ create table public.categories (
   )
 );
 
-comment on table public.categories is 'Categorias do catálogo KuboStudio.';
+comment on table public.categories is 'Categorias do catálogo ABMC 3D.';
 
 create index categories_active_name_idx on public.categories (is_active, name);
 

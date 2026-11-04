@@ -1,5 +1,5 @@
 /** Chave em que a escolha de tema é guardada (localStorage). */
-export const THEME_STORAGE_KEY = "kubostudio:theme"
+export const THEME_STORAGE_KEY = "abmc3d:theme"
 
 /**
  * Roda no <head>, antes da hidratação, para evitar o "piscar" do tema errado:

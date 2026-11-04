@@ -1,10 +1,10 @@
 /**
- * Configuração central da KuboStudio.
+ * Configuração central da ABMC 3D.
  * Ajuste textos, SEO e dados da marca aqui, sem alterar componentes.
  * O número de WhatsApp vem da variável NEXT_PUBLIC_WHATSAPP_NUMBER.
  */
 export const siteConfig = {
-  name: "KuboStudio",
+  name: "ABMC 3D",
   locale: "pt-BR",
   htmlLang: "pt-BR",
   currency: "BRL",
@@ -25,11 +25,11 @@ export const siteConfig = {
   },
 
   seo: {
-    title: "KuboStudio — Produtos em impressão 3D",
-    titleTemplate: "%s | KuboStudio",
+    title: "ABMC 3D — Produtos em impressão 3D",
+    titleTemplate: "%s | ABMC 3D",
     description:
-      "Catálogo da KuboStudio: produtos fabricados por impressão 3D. Monte seu pedido e finalize pelo WhatsApp.",
-    keywords: ["KuboStudio", "impressão 3D", "produtos impressos em 3D", "catálogo", "decoração"],
+      "Catálogo da ABMC 3D: produtos fabricados por impressão 3D. Monte seu pedido e finalize pelo WhatsApp.",
+    keywords: ["ABMC 3D", "ABMC", "impressão 3D", "produtos impressos em 3D", "catálogo", "decoração"],
   },
 
   texts: {
@@ -45,9 +45,9 @@ export const siteConfig = {
     customDescription:
       "Peças com o seu nome, logo ou foto, brindes para a sua empresa e projetos do zero. Conte o que você imagina e receba um orçamento pelo WhatsApp.",
     customPoints: ["Nome, logo ou foto", "Brindes e lotes para empresas", "Do esboço ao modelo 3D"],
-    customWhatsAppMessage: "Olá, KuboStudio! Vim pelo site e gostaria de um orçamento para um item personalizado.",
+    customWhatsAppMessage: "Olá, ABMC 3D! Vim pelo site e gostaria de um orçamento para um item personalizado.",
     orderDisclaimer:
-      "Disponibilidade e prazo de produção são confirmados pela KuboStudio no WhatsApp.",
+      "Disponibilidade e prazo de produção são confirmados pela ABMC 3D no WhatsApp.",
     footerAbout: "Produtos fabricados por impressão 3D. Pedidos e atendimento pelo WhatsApp.",
   },
 
@@ -68,7 +68,7 @@ export const siteConfig = {
   },
 
   cart: {
-    storageKey: "kubostudio:cart:v1",
+    storageKey: "abmc3d:cart:v1",
     maxQuantityPerItem: 99,
     maxItems: 50,
   },

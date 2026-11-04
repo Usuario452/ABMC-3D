@@ -17,7 +17,7 @@ import { parseCatalogQuery } from "@/lib/validation/schemas"
 
 export const metadata: Metadata = {
   title: "Catálogo",
-  description: "Todos os produtos da KuboStudio fabricados por impressão 3D. Busque, filtre por categoria e preço e monte seu pedido.",
+  description: "Todos os produtos da ABMC 3D fabricados por impressão 3D. Busque, filtre por categoria e preço e monte seu pedido.",
   alternates: { canonical: "/catalogo" },
 }
 

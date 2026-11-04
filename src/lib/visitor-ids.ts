@@ -1,5 +1,5 @@
-const VISITOR_KEY = "kubostudio:visitor"
-const SESSION_KEY = "kubostudio:session"
+const VISITOR_KEY = "abmc3d:visitor"
+const SESSION_KEY = "abmc3d:session"
 
 /** Lê (ou cria) um identificador aleatório. Sem armazenamento disponível, vale só para esta página. */
 function readId(storage: () => Storage, key: string): { id: string; created: boolean } {
