@@ -252,7 +252,7 @@ function SidebarContent({
           className="block rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           {collapsed ? (
-            <Image src="/brand/kubostudio-icon.png" alt="KuboStudio" width={44} height={44} className="size-11" />
+            <Image src="/brand/abmc-icon.png" alt="ABMC 3D" width={44} height={44} className="size-11" />
           ) : (
             <BrandLogo className="w-36" />
           )}

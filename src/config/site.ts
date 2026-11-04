@@ -12,16 +12,16 @@ export const siteConfig = {
   logo: {
     // Logos com fundo transparente (kit de marca em public/brand, veja docs/BRAND.md):
     // texto branco para o tema escuro e texto escuro para o tema claro.
-    srcOnDark: "/brand/kubostudio-logo-light.png",
-    srcOnLight: "/brand/kubostudio-logo-dark.png",
-    alt: "KuboStudio",
-    width: 1246,
-    height: 344,
+    srcOnDark: "/brand/abmc-logo-light.png",
+    srcOnLight: "/brand/abmc-logo-dark.png",
+    alt: "ABMC 3D",
+    width: 1172,
+    height: 318,
     /**
-     * Área útil do logo dentro do arquivo (em pixels), sem o respiro transparente de 48 px
+     * Área útil do logo dentro do arquivo (em pixels), sem o respiro transparente de 24 px
      * que o kit de marca mantém em volta. Usada para enquadrar o logo no cabeçalho.
      */
-    contentBox: { x: 48, y: 48, width: 1150, height: 248 },
+    contentBox: { x: 24, y: 24, width: 1124, height: 270 },
   },
 
   seo: {
