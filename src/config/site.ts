@@ -33,39 +33,38 @@ export const siteConfig = {
   },
 
   texts: {
-    tagline: "Produtos fabricados por impressão 3D",
-    heroTitle: "Design e impressão 3D em cada detalhe",
+    tagline: "Soluções em impressão 3D",
+    // Palavras entre *asteriscos* ganham destaque (degradê dourado) no título do hero; "\n" quebra a linha.
+    heroTitle: "Camada a camada,\na sua ideia *ganha forma*.",
     heroDescription:
-      "Conheça o catálogo da KuboStudio, escolha seus produtos e envie o pedido pelo WhatsApp. Disponibilidade, prazo e pagamento são combinados diretamente com a gente.",
+      "Peças, presentes e protótipos em impressão 3D, para você e para a sua empresa. Encontre no catálogo ou peça sob medida.",
     categoriesTitle: "Categorias",
     featuredTitle: "Destaques",
     latestTitle: "Novidades",
-    benefitsTitle: "Como funciona",
-    benefits: [
-      {
-        title: "Fabricação em impressão 3D",
-        description: "Cada produto do catálogo é produzido pela KuboStudio com tecnologia de impressão 3D.",
-      },
-      {
-        title: "Pedido pelo WhatsApp",
-        description: "Monte o carrinho no site e envie o resumo do pedido com um toque, direto para o nosso WhatsApp.",
-      },
-      {
-        title: "Atendimento direto",
-        description: "Disponibilidade, prazo de produção e forma de pagamento são confirmados diretamente com você.",
-      },
-    ],
-    ctaTitle: "Pronto para escolher?",
-    ctaDescription: "Explore o catálogo completo e monte o seu pedido.",
+    allProductsTitle: "Todos os produtos",
+    customTitle: "Tem uma ideia? A gente imprime.",
+    customDescription:
+      "Peças com o seu nome, logo ou foto, brindes para a sua empresa e projetos do zero. Conte o que você imagina e receba um orçamento pelo WhatsApp.",
+    customPoints: ["Nome, logo ou foto", "Brindes e lotes para empresas", "Do esboço ao modelo 3D"],
+    customWhatsAppMessage: "Olá, KuboStudio! Vim pelo site e gostaria de um orçamento para um item personalizado.",
     orderDisclaimer:
-      "Os valores são estimados. Disponibilidade, prazo e pagamento serão confirmados pela KuboStudio no WhatsApp.",
+      "Disponibilidade e prazo de produção são confirmados pela KuboStudio no WhatsApp.",
     footerAbout: "Produtos fabricados por impressão 3D. Pedidos e atendimento pelo WhatsApp.",
   },
 
   catalog: {
     pageSize: 12,
-    featuredLimit: 8,
+    featuredLimit: 12,
     relatedLimit: 4,
+    /** Produto conta como "Novidade" por estes dias após publicado. */
+    newDays: 30,
+    /** Faixas de preço da coluna de filtros, em reais (null = sem limite). */
+    priceRanges: [
+      { min: null, max: 30 },
+      { min: 30, max: 60 },
+      { min: 60, max: 100 },
+      { min: 100, max: null },
+    ] as { min: number | null; max: number | null }[],
   },
 
   cart: {

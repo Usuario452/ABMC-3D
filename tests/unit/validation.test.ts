@@ -8,7 +8,7 @@ const PRODUCT = "44444444-4444-4444-8444-444444444444"
 
 describe("productSchema", () => {
   it("aceita a anotação interna e limita o tamanho", () => {
-    const base = { name: "Vaso", description: "", price: "10", categoryId: "3f1c2d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f", isActive: true, isAvailable: true, isFeatured: false }
+    const base = { name: "Vaso", description: "", price: "10", categoryIds: ["3f1c2d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f"], isActive: true, isAvailable: true, isFeatured: false }
     expect(productSchema.parse(base).internalNotes).toBe("")
     expect(productSchema.parse({ ...base, internalNotes: "  Importado de x  " }).internalNotes).toBe("Importado de x")
     expect(productSchema.safeParse({ ...base, internalNotes: "a".repeat(2001) }).success).toBe(false)
@@ -18,7 +18,7 @@ describe("productSchema", () => {
     name: "  Vaso Geométrico  ",
     description: "Peça impressa em 3D.",
     price: "49,90",
-    categoryId: CATEGORY,
+    categoryIds: [CATEGORY],
     isActive: true,
     isAvailable: true,
     isFeatured: false,
@@ -31,10 +31,10 @@ describe("productSchema", () => {
   })
 
   it("rejeita preço inválido e categoria ausente", () => {
-    const result = productSchema.safeParse({ ...valid, price: "-1", categoryId: "" })
+    const result = productSchema.safeParse({ ...valid, price: "-1", categoryIds: [] })
     expect(result.success).toBe(false)
     const fields = result.error?.issues.map((issue) => issue.path[0])
-    expect(fields).toEqual(expect.arrayContaining(["price", "categoryId"]))
+    expect(fields).toEqual(expect.arrayContaining(["price", "categoryIds"]))
   })
 })
 
@@ -54,12 +54,34 @@ describe("parseCatalogQuery", () => {
       category: "",
       sort: "nome-asc",
       page: 1,
+      minPrice: null,
+      maxPrice: null,
+      featured: false,
+      recent: false,
     })
     expect(parseCatalogQuery({ q: " vaso ", categoria: "decoracao", ordem: "preco-desc", pagina: "2" })).toEqual({
       q: "vaso",
       category: "decoracao",
       sort: "preco-desc",
       page: 2,
+      minPrice: null,
+      maxPrice: null,
+      featured: false,
+      recent: false,
+    })
+  })
+
+  it("lê os filtros de preço, destaques e novidades", () => {
+    expect(parseCatalogQuery({ "preco-min": "80", "preco-max": "20", destaques: "1", novidades: "1" })).toMatchObject({
+      minPrice: 20,
+      maxPrice: 80,
+      featured: true,
+      recent: true,
+    })
+    expect(parseCatalogQuery({ "preco-min": "-5", "preco-max": "abc", destaques: "sim" })).toMatchObject({
+      minPrice: null,
+      maxPrice: null,
+      featured: false,
     })
   })
 })

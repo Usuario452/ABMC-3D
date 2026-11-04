@@ -7,7 +7,19 @@ import { siteConfig } from "@/config/site"
  * escuro e texto escuro no claro. O arquivo mantém um respiro em volta; aqui ele é enquadrado
  * na área útil, sem alterar o arquivo.
  */
-export function BrandLogo({ className, preload = false }: { className?: string; preload?: boolean }) {
+export function BrandLogo({
+  className,
+  preload = false,
+  onDark = false,
+  sizes = "(min-width: 768px) 360px, 280px",
+}: {
+  className?: string
+  preload?: boolean
+  /** Sempre a versão de texto branco (para fundos escuros), independente do tema. */
+  onDark?: boolean
+  /** Largura exibida, para o navegador escolher o arquivo certo (padrão: tamanho de cabeçalho). */
+  sizes?: string
+}) {
   const { srcOnDark, srcOnLight, alt, width, height, contentBox: box } = siteConfig.logo
 
   const position = {
@@ -29,8 +41,8 @@ export function BrandLogo({ className, preload = false }: { className?: string; 
         width={width}
         height={height}
         preload={preload}
-        sizes="(min-width: 768px) 360px, 280px"
-        className="absolute hidden max-w-none dark:block"
+        sizes={sizes}
+        className={cn("brand-logo-on-dark absolute max-w-none", onDark ? "block" : "hidden dark:block")}
         style={position}
       />
       <Image
@@ -38,8 +50,8 @@ export function BrandLogo({ className, preload = false }: { className?: string; 
         alt={alt}
         width={width}
         height={height}
-        sizes="(min-width: 768px) 360px, 280px"
-        className="absolute max-w-none dark:hidden"
+        sizes={sizes}
+        className={cn("brand-logo-on-light absolute max-w-none", onDark ? "hidden" : "dark:hidden")}
         style={position}
       />
     </span>

@@ -4,12 +4,21 @@ import { buildCatalogHref } from "@/lib/catalog-url"
 import { Button } from "@/components/ui/button"
 import type { CatalogQuery } from "@/types/catalog"
 
-export function CatalogPagination({ query, pageCount }: { query: CatalogQuery; pageCount: number }) {
+export function CatalogPagination({
+  query,
+  pageCount,
+  basePath,
+}: {
+  query: CatalogQuery
+  pageCount: number
+  /** Caminho da listagem (padrão: catálogo geral). */
+  basePath?: string
+}) {
   if (pageCount <= 1) return null
 
   const page = Math.min(query.page, pageCount)
-  const prev = page > 1 ? buildCatalogHref({ ...query, page: page - 1 }) : null
-  const next = page < pageCount ? buildCatalogHref({ ...query, page: page + 1 }) : null
+  const prev = page > 1 ? buildCatalogHref({ ...query, page: page - 1 }, basePath) : null
+  const next = page < pageCount ? buildCatalogHref({ ...query, page: page + 1 }, basePath) : null
 
   return (
     <nav aria-label="Paginação" className="mt-10 flex items-center justify-center gap-3">

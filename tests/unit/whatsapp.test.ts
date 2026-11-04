@@ -41,9 +41,9 @@ describe("buildOrderMessage", () => {
     expect(message).toContain("Subtotal: R$ 129,00")
   })
 
-  it("informa o total estimado", () => {
+  it("informa o total", () => {
     expect(orderTotal(lines)).toBe(22880)
-    expect(message).toContain("Total estimado: R$ 228,80")
+    expect(message).toContain("Total: R$ 228,80")
   })
 })
 

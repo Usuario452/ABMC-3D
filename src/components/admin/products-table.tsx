@@ -200,7 +200,11 @@ function ProductRow({
               ) : null}
             </div>
             <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
-              <span className="max-w-full truncate">{product.category?.name ?? "Sem categoria"}</span>
+              <span className="max-w-full truncate">
+                {product.categories.length > 0
+                  ? product.categories.map((category) => category.name).join(", ")
+                  : "Sem categoria"}
+              </span>
               <span className="font-medium text-foreground tabular-nums md:hidden">{formatPrice(product.price_cents)}</span>
               {!product.image ? <span className="text-destructive">Sem foto</span> : null}
             </p>

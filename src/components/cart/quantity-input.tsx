@@ -14,6 +14,7 @@ export function QuantityInput({
   id,
   className,
   disabled,
+  size = "default",
 }: {
   value: number
   onChange: (value: number) => void
@@ -21,6 +22,8 @@ export function QuantityInput({
   id: string
   className?: string
   disabled?: boolean
+  /** "sm": versão compacta e arredondada, usada na gaveta do carrinho. */
+  size?: "default" | "sm"
 }) {
   const [draft, setDraft] = useState<string | null>(null)
 
@@ -31,11 +34,18 @@ export function QuantityInput({
   }
 
   return (
-    <div className={cn("inline-flex items-center rounded-lg border border-input", className)}>
+    <div
+      className={cn(
+        "inline-flex items-center border border-input",
+        size === "sm" ? "rounded-full" : "rounded-lg",
+        className,
+      )}
+    >
       <Button
         type="button"
         variant="ghost"
-        size="icon"
+        size={size === "sm" ? "icon-sm" : "icon"}
+        className={size === "sm" ? "rounded-full" : undefined}
         onClick={() => onChange(clampQuantity(value - 1))}
         disabled={disabled || value <= 1}
         aria-label="Diminuir quantidade"
@@ -62,7 +72,10 @@ export function QuantityInput({
           }
         }}
         aria-describedby={`${id}-hint`}
-        className="h-10 w-12 bg-transparent text-center text-base font-semibold tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+        className={cn(
+          "bg-transparent text-center font-semibold tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50",
+          size === "sm" ? "h-8 w-8 text-sm" : "h-10 w-12 text-base",
+        )}
       />
       <span id={`${id}-hint`} className="sr-only">
         Quantidade entre 1 e {MAX_QUANTITY}
@@ -70,7 +83,8 @@ export function QuantityInput({
       <Button
         type="button"
         variant="ghost"
-        size="icon"
+        size={size === "sm" ? "icon-sm" : "icon"}
+        className={size === "sm" ? "rounded-full" : undefined}
         onClick={() => onChange(clampQuantity(value + 1))}
         disabled={disabled || value >= MAX_QUANTITY}
         aria-label="Aumentar quantidade"

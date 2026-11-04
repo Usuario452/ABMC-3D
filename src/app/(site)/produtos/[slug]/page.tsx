@@ -16,6 +16,7 @@ import { load } from "@/lib/data/load"
 import { formatPrice } from "@/lib/format"
 import { SLUG_PATTERN } from "@/lib/slug"
 import { isDatabaseConfigured } from "@/lib/env"
+import { buildCategoryHref } from "@/lib/catalog-url"
 
 export async function generateMetadata({ params }: PageProps<"/produtos/[slug]">): Promise<Metadata> {
   const { slug } = await params
@@ -78,7 +79,7 @@ async function ProductContent({ params }: { params: PageProps<"/produtos/[slug]"
                 <HiChevronRight className="size-4" />
               </li>
               <li>
-                <Link href={`/catalogo?categoria=${product.category.slug}`} className="hover:text-foreground">
+                <Link href={buildCategoryHref(product.category.id)} className="hover:text-foreground">
                   {product.category.name}
                 </Link>
               </li>
@@ -100,8 +101,8 @@ async function ProductContent({ params }: { params: PageProps<"/produtos/[slug]"
           {product.category ? (
             <p className="text-sm font-medium tracking-wide text-muted-foreground uppercase">{product.category.name}</p>
           ) : null}
-          <h1 className="mt-2 text-3xl font-bold sm:text-4xl">{product.name}</h1>
-          <p className="mt-4 text-3xl font-bold text-gold">{formatPrice(product.priceCents)}</p>
+          <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{product.name}</h1>
+          <p className="mt-3 text-2xl font-bold text-gold">{formatPrice(product.priceCents)}</p>
 
           <p className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-success">
             <HiCheckCircle className="size-5" aria-hidden />
@@ -124,7 +125,7 @@ async function ProductContent({ params }: { params: PageProps<"/produtos/[slug]"
 
           {product.description ? (
             <section className="mt-10 border-t border-border pt-8" aria-labelledby="descricao-titulo">
-              <h2 id="descricao-titulo" className="text-lg font-semibold">
+              <h2 id="descricao-titulo" className="text-base font-semibold">
                 Descrição
               </h2>
               <Markdown className="mt-3">{product.description}</Markdown>
@@ -135,20 +136,20 @@ async function ProductContent({ params }: { params: PageProps<"/produtos/[slug]"
 
       {product.category ? (
         <Suspense fallback={null}>
-          <RelatedProducts categoryId={product.category.id} productId={product.id} />
+          <RelatedProducts productId={product.id} />
         </Suspense>
       ) : null}
     </>
   )
 }
 
-async function RelatedProducts({ categoryId, productId }: { categoryId: string; productId: string }) {
-  const result = await load(() => getRelatedProducts(categoryId, productId))
+async function RelatedProducts({ productId }: { productId: string }) {
+  const result = await load(() => getRelatedProducts(productId))
   if (!result.ok || result.data.length === 0) return null
 
   return (
     <section className="mt-16 border-t border-border pt-10" aria-labelledby="relacionados-titulo">
-      <h2 id="relacionados-titulo" className="mb-6 text-2xl font-semibold">
+      <h2 id="relacionados-titulo" className="mb-6 text-xl font-semibold sm:text-2xl">
         Você também pode gostar
       </h2>
       <ProductGrid products={result.data} />

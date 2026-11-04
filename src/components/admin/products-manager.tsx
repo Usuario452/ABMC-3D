@@ -151,7 +151,7 @@ export function ProductsManager({
     return products.filter(
       (product) =>
         (!term || normalize(product.name).includes(term)) &&
-        (!filters.categoria || product.category?.id === filters.categoria),
+        (!filters.categoria || product.categories.some((category) => category.id === filters.categoria)),
     )
   }, [products, filters.q, filters.categoria])
   const counts = Object.fromEntries(

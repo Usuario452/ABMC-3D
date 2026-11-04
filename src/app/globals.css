@@ -268,3 +268,38 @@
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * Cabeçalho estacionado no hero (src/components/layout/header-shell.tsx): numa página que marca
+ * [data-header-park] e ainda sem rolar, a barra fica transparente, com texto e logo claros.
+ * Fora de @layer de propósito, para vencer as utilities do Tailwind.
+ */
+body:has([data-header-park]) [data-site-header]:not([data-scrolled="true"]) {
+  translate: none;
+}
+body:has([data-header-park]) [data-site-header]:not([data-scrolled="true"]) .site-header-bar {
+  border-radius: var(--radius-xl);
+  border-color: transparent;
+  background-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+body:has([data-header-park]) [data-site-header]:not([data-scrolled="true"]) .brand-logo-on-dark {
+  display: block;
+}
+body:has([data-header-park]) [data-site-header]:not([data-scrolled="true"]) .brand-logo-on-light {
+  display: none;
+}
+
+/*
+ * Grade de fundo de uma página inteira (página da categoria): uniforme, só some perto do rodapé.
+ * Fica fora de @layer utilities porque o Tailwind descarta dali classes que ele mesmo não gera.
+ */
+.bg-grid-page {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--foreground) 2.5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--foreground) 2.5%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: center top;
+  mask-image: linear-gradient(to bottom, black 80%, transparent);
+}

@@ -1,174 +1,156 @@
+import Image from "next/image"
 import Link from "next/link"
 import { Suspense } from "react"
-import type { IconType } from "react-icons"
-import {
-  HiArrowRight,
-  HiOutlineChatBubbleLeftRight,
-  HiOutlineCube,
-  HiOutlineCubeTransparent,
-  HiOutlineHandRaised,
-} from "react-icons/hi2"
-import { ProductGrid } from "@/components/catalog/product-card"
+import { FaWhatsapp } from "react-icons/fa6"
+import { HiArrowRight, HiOutlineCubeTransparent, HiOutlineSquares2X2 } from "react-icons/hi2"
+import { AllProducts } from "@/components/home/all-products"
+import { CategoriesCarousel } from "@/components/home/categories-carousel"
+import { CustomOrderCard } from "@/components/home/custom-order-card"
+import { FeaturedSection, FeaturedSkeleton } from "@/components/home/featured-section"
+import { HeroVideo } from "@/components/home/hero-video"
+import { HomeSearchArea, HomeSearchInput, HomeSearchProvider } from "@/components/home/home-search"
 import { ProductGridSkeleton } from "@/components/catalog/skeletons"
 import { LoadError } from "@/components/shared/load-error"
 import { StateMessage } from "@/components/shared/state-message"
-import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { siteConfig } from "@/config/site"
-import { getActiveCategories, getHomeProducts } from "@/lib/data/catalog"
+import { getCatalogPage, getShowcaseCategories } from "@/lib/data/catalog"
 import { load } from "@/lib/data/load"
-
-const benefitIcons: IconType[] = [HiOutlineCube, HiOutlineChatBubbleLeftRight, HiOutlineHandRaised]
+import { parseCatalogQuery } from "@/lib/validation/schemas"
+import { getWhatsAppContactUrl } from "@/lib/whatsapp"
 
 export default function HomePage() {
   const { texts } = siteConfig
+  const contactUrl = getWhatsAppContactUrl()
 
   return (
     <>
-      <section className="relative overflow-hidden border-b border-border">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-40 mx-auto h-96 max-w-3xl rounded-full bg-gold/10 blur-3xl"
-        />
-        <div className="page-container relative py-20 sm:py-28">
-          <p className="text-sm font-semibold tracking-[0.2em] text-gold uppercase">{texts.tagline}</p>
-          <h1 className="mt-4 max-w-3xl text-4xl leading-tight font-bold sm:text-5xl lg:text-6xl">
-            {texts.heroTitle}
-          </h1>
-          <p className="mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">{texts.heroDescription}</p>
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg">
-              <Link href="/catalogo">
-                Ver catálogo
-                <HiArrowRight aria-hidden />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <a href="#como-funciona">Como funciona</a>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <Suspense fallback={<CategoriesSkeleton />}>
-        <CategoriesSection />
-      </Suspense>
-
-      <section className="page-container py-14" aria-labelledby="produtos-titulo">
-        <Suspense
-          fallback={
-            <>
-              <Skeleton className="mb-8 h-8 w-40" />
-              <ProductGridSkeleton count={4} />
-            </>
-          }
+      <HomeSearchProvider>
+        {/* Hero de ponta a ponta, centralizado, com a busca; sobe por baixo do cabeçalho estacionado. */}
+        <section
+          data-header-park
+          className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#0a0907] text-white sm:-mt-20"
         >
-          <HomeProductsSection />
-        </Suspense>
-      </section>
+          {/* Fundo: vídeo de oficina sobre a foto (fallback), ambos sob um véu escuro para o texto ler bem. */}
+          <Image src="/hero/oficina-3d.webp" alt="" fill priority sizes="100vw" className="-z-30 object-cover" />
+          <HeroVideo />
+          <div aria-hidden className="absolute inset-0 -z-10 bg-black/55" />
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_45%,transparent_0%,rgb(10_9_7/0.55)_70%)]"
+          />
+          <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-linear-to-b from-transparent to-[#0a0907]" />
 
-      <section id="como-funciona" className="border-y border-border bg-surface" aria-labelledby="beneficios-titulo">
-        <div className="page-container py-16">
-          <h2 id="beneficios-titulo" className="text-2xl font-semibold sm:text-3xl">
-            {texts.benefitsTitle}
-          </h2>
-          <ul className="mt-10 grid gap-6 md:grid-cols-3">
-            {texts.benefits.map((benefit, index) => {
-              const Icon = benefitIcons[index] ?? HiOutlineCubeTransparent
-              return (
-                <li key={benefit.title} className="rounded-xl border border-border bg-background p-6">
-                  <span className="flex size-11 items-center justify-center rounded-lg bg-surface-elevated text-gold">
-                    <Icon className="size-6" aria-hidden />
-                  </span>
-                  <h3 className="mt-5 text-lg font-semibold">{benefit.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{benefit.description}</p>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-      </section>
-
-      <section className="page-container py-16">
-        <div className="flex flex-col items-start gap-6 rounded-2xl border border-border bg-card p-8 sm:flex-row sm:items-center sm:justify-between sm:p-10">
-          <div>
-            <h2 className="text-2xl font-semibold">{texts.ctaTitle}</h2>
-            <p className="mt-2 text-muted-foreground">{texts.ctaDescription}</p>
+          <div className="page-container flex min-h-[680px] flex-col items-center justify-center px-4 pt-32 pb-28 text-center sm:min-h-[840px] sm:pt-36">
+            {/* Selo sem chip: ícone e texto no degradê dourado da marca. */}
+            <p className="inline-flex items-center gap-2 text-sm font-semibold tracking-wide">
+              <HiOutlineCubeTransparent className="size-5 text-gold-light" aria-hidden />
+              <span className="bg-gold-gradient bg-clip-text text-transparent">{texts.tagline}</span>
+            </p>
+            <h1 className="mt-6 max-w-3xl text-[2rem] leading-[1.08] font-bold tracking-tight text-balance sm:text-[2.75rem] lg:text-[3.25rem]">
+              <HighlightedTitle text={texts.heroTitle} />
+            </h1>
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">{texts.heroDescription}</p>
+            <div className="mt-9 w-full">
+              <HomeSearchInput />
+            </div>
+            {/* Atalhos abaixo da busca: o catálogo completo e o pedido sob medida (WhatsApp). */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
+              <Link href="/catalogo" className="group inline-flex items-center gap-1.5 text-white/70 transition-colors hover:text-white">
+                <HiOutlineSquares2X2 className="size-4" aria-hidden />
+                Ver catálogo completo
+                <HiArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
+              </Link>
+              {contactUrl ? (
+                <>
+                  <span aria-hidden className="size-1 rounded-full bg-white/30" />
+                  <a
+                    href={contactUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group inline-flex items-center gap-1.5 text-white/70 transition-colors hover:text-white"
+                  >
+                    <FaWhatsapp className="size-4 text-gold-light" aria-hidden />
+                    Pedido sob medida
+                    <HiArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                  </a>
+                </>
+              ) : null}
+            </div>
           </div>
-          <Button asChild size="lg">
-            <Link href="/catalogo">
-              Explorar catálogo
-              <HiArrowRight aria-hidden />
-            </Link>
-          </Button>
-        </div>
-      </section>
+        </section>
+
+        <HomeSearchArea>
+          <Suspense fallback={<CategoriesSkeleton />}>
+            <CategoriesSection />
+          </Suspense>
+
+          <Suspense fallback={<FeaturedSkeleton />}>
+            <FeaturedSection />
+          </Suspense>
+
+          <CustomOrderCard />
+
+          <section className="page-container pt-14 pb-16" aria-labelledby="todos-titulo">
+            <Suspense
+              fallback={
+                <>
+                  <Skeleton className="mb-6 h-7 w-48" />
+                  <ProductGridSkeleton count={10} />
+                </>
+              }
+            >
+              <AllProductsSection />
+            </Suspense>
+          </section>
+        </HomeSearchArea>
+      </HomeSearchProvider>
     </>
   )
 }
 
 async function CategoriesSection() {
-  const result = await load(getActiveCategories)
+  const result = await load(getShowcaseCategories)
   // Sem categorias (ou com falha), a seção é omitida; a falha aparece na seção de produtos.
   if (!result.ok || result.data.length === 0) return null
 
-  return (
-    <section className="page-container pt-14" aria-labelledby="categorias-titulo">
-      <h2 id="categorias-titulo" className="text-2xl font-semibold sm:text-3xl">
-        {siteConfig.texts.categoriesTitle}
-      </h2>
-      <ul className="mt-6 flex flex-wrap gap-3">
-        {result.data.map((category) => (
-          <li key={category.id}>
-            <Link
-              href={`/catalogo?categoria=${category.slug}`}
-              className="inline-flex h-11 items-center rounded-full border border-border bg-card px-5 text-sm font-medium transition-colors hover:border-gold/60 hover:text-gold focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-            >
-              {category.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
+  return <CategoriesCarousel title={siteConfig.texts.categoriesTitle} categories={result.data} />
 }
 
 function CategoriesSkeleton() {
   return (
     <div className="page-container pt-14" aria-hidden>
-      <Skeleton className="h-8 w-40" />
-      <div className="mt-6 flex flex-wrap gap-3">
-        {Array.from({ length: 4 }, (_, i) => (
-          <Skeleton key={i} className="h-11 w-28 rounded-full" />
+      <div className="flex gap-1.5 overflow-hidden">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Skeleton key={i} className="aspect-[2/3] w-[68%] shrink-0 rounded-2xl sm:w-64 lg:w-72" />
         ))}
       </div>
     </div>
   )
 }
 
-async function HomeProductsSection() {
-  const result = await load(getHomeProducts)
+async function AllProductsSection() {
+  const result = await load(() => getCatalogPage(parseCatalogQuery({ sort: "recentes" })))
+
+  const title = (
+    <h2 id="todos-titulo" className="text-xl font-semibold sm:text-2xl">
+      {siteConfig.texts.allProductsTitle}
+    </h2>
+  )
 
   if (!result.ok) {
     return (
       <>
-        <h2 id="produtos-titulo" className="mb-8 text-2xl font-semibold sm:text-3xl">
-          {siteConfig.texts.featuredTitle}
-        </h2>
+        <div className="mb-6">{title}</div>
         <LoadError result={result} retryHref="/" />
       </>
     )
   }
 
-  const { kind, products } = result.data
-  const title = kind === "featured" ? siteConfig.texts.featuredTitle : siteConfig.texts.latestTitle
-
-  if (products.length === 0) {
+  if (result.data.total === 0) {
     return (
       <>
-        <h2 id="produtos-titulo" className="sr-only">
-          Produtos
-        </h2>
+        <div className="sr-only">{title}</div>
         <StateMessage
           icon={HiOutlineCubeTransparent}
           title="Catálogo em preparação"
@@ -180,15 +162,23 @@ async function HomeProductsSection() {
 
   return (
     <>
-      <div className="mb-8 flex items-end justify-between gap-4">
-        <h2 id="produtos-titulo" className="text-2xl font-semibold sm:text-3xl">
-          {title}
-        </h2>
-        <Link href="/catalogo" className="shrink-0 text-sm font-medium text-gold hover:underline">
-          Ver todos
-        </Link>
-      </div>
-      <ProductGrid products={products} preloadFirst={2} />
+      <div className="mb-6">{title}</div>
+      <AllProducts initial={result.data} />
     </>
+  )
+}
+
+/** Título com as palavras entre *asteriscos* em destaque (degradê dourado) e "\n" como quebra de linha. */
+function HighlightedTitle({ text }: { text: string }) {
+  return text.split(/(\*[^*]+\*|\n)/).map((part, index) =>
+    part === "\n" ? (
+      <br key={index} />
+    ) : part.startsWith("*") && part.endsWith("*") ? (
+      <span key={index} className="bg-gold-gradient bg-clip-text whitespace-nowrap text-transparent">
+        {part.slice(1, -1)}
+      </span>
+    ) : (
+      part
+    ),
   )
 }

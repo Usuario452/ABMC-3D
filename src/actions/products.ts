@@ -5,11 +5,22 @@ import { describeDbError, failure, success, validationFailure, type ActionResult
 import { catalogChanged } from "@/lib/actions/revalidate"
 import { getAdminProduct, type AdminProduct } from "@/lib/data/admin"
 import { uniqueSlug } from "@/lib/data/unique-slug"
+import type { TransactionSql } from "postgres"
 import { pgErrorCode } from "@/lib/db"
 import { deleteObjects } from "@/lib/r2"
 import { productSchema, uuidSchema, type ProductData, type ProductInput } from "@/lib/validation/schemas"
 
 const DUPLICATE_SLUG = "Já existe um produto com este endereço. Tente salvar de novo."
+
+/** Substitui as categorias do produto pela lista informada, na ordem (dentro da transação). */
+async function saveCategories(tx: TransactionSql, productId: string, categoryIds: string[]) {
+  await tx`delete from product_categories where product_id = ${productId}`
+  await tx`
+    insert into product_categories ${tx(
+      categoryIds.map((categoryId, position) => ({ product_id: productId, category_id: categoryId, position })),
+    )}
+  `
+}
 
 /** Campos editáveis. O slug fica de fora: é gerado na criação e não muda depois (links continuam valendo). */
 function toRow(data: ProductData) {
@@ -18,7 +29,8 @@ function toRow(data: ProductData) {
     description: data.description,
     internal_notes: data.internalNotes,
     price_cents: data.price,
-    category_id: data.categoryId,
+    // A primeira categoria escolhida; a lista completa fica em product_categories.
+    category_id: data.categoryIds[0],
     is_active: data.isActive,
     is_available: data.isAvailable,
     is_featured: data.isFeatured,
@@ -28,8 +40,8 @@ function toRow(data: ProductData) {
 function writeFailure(error: unknown) {
   const code = pgErrorCode(error)
   if (code === "23503") {
-    return failure("A categoria selecionada não existe mais.", {
-      fieldErrors: { categoryId: ["Selecione uma categoria válida."] },
+    return failure("Uma das categorias selecionadas não existe mais.", {
+      fieldErrors: { categoryIds: ["Selecione categorias válidas."] },
     })
   }
   return failure(describeDbError({ code }, { duplicate: DUPLICATE_SLUG }), {
@@ -46,11 +58,15 @@ export async function createProduct(input: ProductInput): Promise<ActionResult<{
 
   try {
     const slug = await uniqueSlug(auth.sql, "products", parsed.data.name, "produto")
-    const [row] = await auth.sql<{ id: string }[]>`
-      insert into products ${auth.sql({ ...toRow(parsed.data), slug })} returning id
-    `
+    const id = await auth.sql.begin(async (tx) => {
+      const [row] = await tx<{ id: string }[]>`
+        insert into products ${tx({ ...toRow(parsed.data), slug })} returning id
+      `
+      await saveCategories(tx, row.id, parsed.data.categoryIds)
+      return row.id
+    })
     catalogChanged()
-    return success({ id: row.id }, "Produto criado.")
+    return success({ id }, "Produto criado.")
   } catch (error) {
     return writeFailure(error)
   }
@@ -66,10 +82,15 @@ export async function updateProduct(id: string, input: ProductInput): Promise<Ac
   if (!parsed.success) return validationFailure(parsed.error)
 
   try {
-    const rows = await auth.sql`
-      update products set ${auth.sql(toRow(parsed.data))} where id = ${parsedId.data} returning id
-    `
-    if (rows.length === 0) return failure("Produto não encontrado.")
+    const found = await auth.sql.begin(async (tx) => {
+      const rows = await tx`
+        update products set ${tx(toRow(parsed.data))} where id = ${parsedId.data} returning id
+      `
+      if (rows.length === 0) return false
+      await saveCategories(tx, parsedId.data, parsed.data.categoryIds)
+      return true
+    })
+    if (!found) return failure("Produto não encontrado.")
   } catch (error) {
     return writeFailure(error)
   }

@@ -9,7 +9,6 @@ import { toast } from "sonner"
 import { checkCart, createWhatsAppOrder, type CartCheck } from "@/actions/cart"
 import { QuantityInput } from "@/components/cart/quantity-input"
 import { StateMessage } from "@/components/shared/state-message"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { siteConfig } from "@/config/site"
@@ -23,6 +22,7 @@ import {
 } from "@/lib/cart/cart"
 import { setCartItems, useCartHydrated, useCartItems } from "@/lib/cart/store"
 import { formatPrice } from "@/lib/format"
+import { cn } from "@/lib/utils"
 import { getWhatsAppConfig } from "@/lib/whatsapp"
 
 type SyncState =
@@ -142,7 +142,11 @@ function applyCheck(check: CartCheck): SyncState {
   return { status: "ok", unavailable: new Set(check.unavailableIds), priceChanged }
 }
 
-export function CartView() {
+/**
+ * Conteúdo da gaveta do carrinho: itens rolando e, fixo embaixo, o total e a finalização pelo WhatsApp.
+ * `onNavigate` fecha a gaveta ao seguir um link (produto, catálogo).
+ */
+export function CartView({ onNavigate }: { onNavigate?: () => void }) {
   const items = useCartItems()
   const hydrated = useCartHydrated()
   const [sync, setSync] = useCartSync(items, hydrated)
@@ -152,25 +156,30 @@ export function CartView() {
 
   if (!hydrated) {
     return (
-      <div className="space-y-4" aria-hidden>
-        <Skeleton className="h-28 w-full" />
-        <Skeleton className="h-28 w-full" />
+      <div className="space-y-3 p-5" aria-hidden>
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-20 w-full" />
       </div>
     )
   }
 
   if (items.length === 0) {
     return (
-      <StateMessage
-        icon={HiOutlineShoppingBag}
-        title="Seu carrinho está vazio"
-        description="Explore o catálogo e adicione os produtos que deseja encomendar."
-        action={
-          <Button asChild>
-            <Link href="/catalogo">Ver catálogo</Link>
-          </Button>
-        }
-      />
+      <div className="flex flex-1 items-center p-5">
+        <StateMessage
+          icon={HiOutlineShoppingBag}
+          title="Seu carrinho está vazio"
+          description="Explore o catálogo e adicione os produtos que deseja encomendar."
+          className="w-full border-0"
+          action={
+            <Button asChild>
+              <Link href="/catalogo" onClick={onNavigate}>
+                Ver catálogo
+              </Link>
+            </Button>
+          }
+        />
+      </div>
     )
   }
 
@@ -213,36 +222,46 @@ export function CartView() {
     })
   }
 
+  const itemCount = availableItems.reduce((sum, item) => sum + item.quantity, 0)
+  const removeUnavailable = () =>
+    setCartItems((current) => current.filter((item) => !unavailable.has(item.productId)))
+
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-      <div className="space-y-4">
-        <ul className="divide-y divide-border rounded-xl border border-border bg-card">
-          {items.map((item) => (
-            <CartLine key={item.productId} item={item} unavailable={unavailable.has(item.productId)} />
-          ))}
-        </ul>
-      </div>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-2">
+        {items.map((item) => (
+          <CartLine
+            key={item.productId}
+            item={item}
+            unavailable={unavailable.has(item.productId)}
+            onNavigate={onNavigate}
+          />
+        ))}
+      </ul>
 
-      <aside className="h-fit space-y-5 rounded-xl border border-border bg-card p-6 lg:sticky lg:top-24" aria-labelledby="resumo-titulo">
-        <h2 id="resumo-titulo" className="text-lg font-semibold">
-          Resumo do pedido
-        </h2>
-        <dl className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Itens</dt>
-            <dd>{availableItems.reduce((sum, item) => sum + item.quantity, 0)}</dd>
+      <footer className="space-y-3 border-t border-border px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        {hasUnavailable ? (
+          <div className="flex items-center justify-between gap-3 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            <span>Há itens indisponíveis no carrinho.</span>
+            <button
+              type="button"
+              onClick={removeUnavailable}
+              className="shrink-0 cursor-pointer font-semibold underline-offset-4 hover:underline"
+            >
+              Remover
+            </button>
           </div>
-          <div className="flex items-baseline justify-between border-t border-border pt-3">
-            <dt className="font-semibold">Total estimado</dt>
-            <dd className="text-2xl font-bold text-gold" aria-live="polite">
-              {formatPrice(total)}
-            </dd>
-          </div>
-        </dl>
-
+        ) : null}
+        <div className="flex items-baseline justify-between">
+          <span className="text-sm text-muted-foreground">
+            Total{itemCount > 0 ? ` · ${itemCount === 1 ? "1 item" : `${itemCount} itens`}` : ""}
+          </span>
+          <span className="text-xl font-bold tabular-nums" aria-live="polite">
+            {formatPrice(total)}
+          </span>
+        </div>
         <Button
-          size="lg"
-          className="w-full"
+          className="h-11 w-full rounded-full"
           onClick={handleCheckout}
           disabled={
             !whatsappReady ||
@@ -255,31 +274,40 @@ export function CartView() {
           <FaWhatsapp className="size-5" aria-hidden />
           {isSubmitting ? "Gerando pedido…" : "Finalizar pelo WhatsApp"}
         </Button>
-        {hasUnavailable ? (
-          <p className="text-xs text-destructive">Remova os itens indisponíveis para finalizar.</p>
-        ) : null}
-        <p className="text-xs text-muted-foreground">{siteConfig.texts.orderDisclaimer}</p>
-        <Button asChild variant="ghost" className="w-full">
-          <Link href="/catalogo">Continuar comprando</Link>
-        </Button>
-      </aside>
+        <p className="text-center text-[11px] leading-snug text-muted-foreground">
+          {whatsappReady ? null : "O WhatsApp da loja ainda não foi configurado. "}
+          {siteConfig.texts.orderDisclaimer}
+        </p>
+      </footer>
     </div>
   )
 }
 
-function CartLine({ item, unavailable }: { item: CartItem; unavailable: boolean }) {
+function CartLine({
+  item,
+  unavailable,
+  onNavigate,
+}: {
+  item: CartItem
+  unavailable: boolean
+  onNavigate?: () => void
+}) {
   const subtotal = item.unitPriceCents * item.quantity
 
   return (
-    <li className="flex gap-4 p-4">
+    <li className="flex gap-3 rounded-xl p-2 transition-colors hover:bg-muted/50">
       <Link
         href={`/produtos/${item.slug}`}
-        className="relative size-20 shrink-0 overflow-hidden rounded-lg border border-border bg-surface-elevated sm:size-24"
+        onClick={onNavigate}
+        className={cn(
+          "relative size-20 shrink-0 overflow-hidden rounded-lg bg-surface-elevated",
+          unavailable && "opacity-50 grayscale",
+        )}
         tabIndex={-1}
         aria-hidden
       >
         {item.imageUrl ? (
-          <Image src={item.imageUrl} alt="" fill sizes="96px" className="object-cover" />
+          <Image src={item.imageUrl} alt="" fill sizes="80px" className="object-cover" />
         ) : (
           <span className="flex h-full items-center justify-center text-muted-foreground">
             <HiOutlinePhoto className="size-6" />
@@ -287,42 +315,53 @@ function CartLine({ item, unavailable }: { item: CartItem; unavailable: boolean 
         )}
       </Link>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-3">
-        <div className="flex items-start justify-between gap-3">
+      <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 py-0.5">
+        <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <Link href={`/produtos/${item.slug}`} className="line-clamp-2 font-semibold hover:text-gold">
+            <Link
+              href={`/produtos/${item.slug}`}
+              onClick={onNavigate}
+              className={cn(
+                "line-clamp-2 text-sm leading-snug font-medium hover:text-gold",
+                unavailable && "text-muted-foreground",
+              )}
+            >
               {item.name}
             </Link>
-            <p className="mt-1 text-sm text-muted-foreground">{formatPrice(item.unitPriceCents)} cada</p>
-            {unavailable ? (
-              <Badge variant="destructive" className="mt-2">
-                Indisponível
-              </Badge>
-            ) : null}
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {unavailable ? (
+                <span className="font-medium text-destructive">Indisponível</span>
+              ) : (
+                `${formatPrice(item.unitPriceCents)} cada`
+              )}
+            </p>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
+          <button
+            type="button"
             aria-label={`Remover ${item.name} do carrinho`}
             onClick={() => setCartItems((current) => removeFromCart(current, item.productId))}
+            className="-mt-0.5 -mr-0.5 flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors outline-none hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <HiOutlineTrash className="size-5" aria-hidden />
-          </Button>
+            <HiOutlineTrash className="size-4" aria-hidden />
+          </button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2">
           <QuantityInput
             id={`qty-${item.productId}`}
             label={`Quantidade de ${item.name}`}
             value={item.quantity}
+            size="sm"
             disabled={unavailable}
             onChange={(value) => setCartItems((current) => updateQuantity(current, item.productId, value))}
           />
-          <p className="text-sm">
-            <span className="text-muted-foreground">Subtotal: </span>
-            <span className={unavailable ? "font-semibold text-muted-foreground line-through" : "font-semibold"}>
-              {formatPrice(subtotal)}
-            </span>
+          <p
+            className={cn(
+              "text-sm font-semibold tabular-nums",
+              unavailable && "text-muted-foreground line-through",
+            )}
+          >
+            {formatPrice(subtotal)}
           </p>
         </div>
       </div>

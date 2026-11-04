@@ -53,7 +53,7 @@ export function buildOrderMessage(lines: OrderLine[]) {
     "",
     body,
     "",
-    `*Total estimado: ${formatPrice(orderTotal(lines))}*`,
+    `*Total: ${formatPrice(orderTotal(lines))}*`,
     "",
     "Aguardo a confirmação de disponibilidade, prazo e forma de pagamento.",
   ].join("\n")

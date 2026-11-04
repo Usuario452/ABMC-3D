@@ -21,7 +21,6 @@ import {
   HiOutlineQuestionMarkCircle,
   HiOutlineSparkles,
   HiOutlineStar,
-  HiOutlineTag,
   HiStar,
   HiOutlineTrash,
 } from "react-icons/hi2"
@@ -32,6 +31,7 @@ import { importFromMakerWorld } from "@/actions/makerworld"
 import { createProduct, deleteProduct, updateProduct } from "@/actions/products"
 import { networkErrorToast, useActionFeedback } from "@/components/admin/action-feedback"
 import { CategoryFormDialog } from "@/components/admin/category-form-dialog"
+import { CategoryMultiSelect } from "@/components/admin/category-multi-select"
 import { ConfirmDelete } from "@/components/admin/confirm-delete"
 import { PriceCalculatorDialog } from "@/components/admin/price-calculator"
 import { LinkTextarea } from "@/components/admin/link-textarea"
@@ -41,7 +41,6 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { AdminProduct } from "@/lib/data/admin"
@@ -89,12 +88,11 @@ export function ProductDialog({
 }) {
   const feedback = useActionFeedback()
   const [isPending, startTransition] = useTransition()
-  // Categorias do seletor; "Nova" acrescenta a criada no modal de categoria e já a seleciona.
+  // Categorias do seletor; "Nova" acrescenta a criada no modal de categoria e já a marca.
   const [categoryList, setCategoryList] = useState(categories)
   const [creatingCategory, setCreatingCategory] = useState(false)
   // Calculadora de preço num modal; o resultado preenche o campo de preço.
   const [calculating, setCalculating] = useState(false)
-  const [categoryOpen, setCategoryOpen] = useState(false)
   const [photos, setPhotos] = useState<Photo[]>(() =>
     (product?.images ?? []).map((image) => ({ key: image.id, url: image.url, saved: image })),
   )
@@ -109,7 +107,7 @@ export function ProductDialog({
       description: product?.description ?? "",
       internalNotes: product?.internal_notes ?? "",
       price: product ? centsToInputValue(product.price_cents) : "",
-      categoryId: product?.category_id ?? "",
+      categoryIds: product?.categoryIds ?? [],
       isActive: product?.is_active ?? true,
       // "Ativo" já decide se o produto aparece; disponibilidade não é mais editada à parte.
       isAvailable: true,
@@ -419,11 +417,11 @@ export function ProductDialog({
 
               <Controller
                 control={form.control}
-                name="categoryId"
+                name="categoryIds"
                 render={({ field }) => (
-                  <Field data-invalid={Boolean(errors.categoryId)}>
+                  <Field data-invalid={Boolean(errors.categoryIds)}>
                     <div className="flex items-center justify-between gap-2">
-                      <FieldLabel htmlFor="product-category">Categoria <span className="text-destructive" aria-hidden>*</span></FieldLabel>
+                      <FieldLabel htmlFor="product-category">Categorias <span className="text-destructive" aria-hidden>*</span></FieldLabel>
                       <button
                         type="button"
                         onClick={() => setCreatingCategory(true)}
@@ -434,51 +432,18 @@ export function ProductDialog({
                         Nova
                       </button>
                     </div>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      open={categoryOpen}
-                      onOpenChange={setCategoryOpen}
-                    >
-                      <SelectTrigger
-                        id="product-category"
-                        aria-required
-                        className="w-full"
-                        aria-invalid={Boolean(errors.categoryId)}
-                        onBlur={field.onBlur}
-                      >
-                        <span className="flex min-w-0 items-center gap-2">
-                          <HiOutlineTag className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                          <SelectValue placeholder="Selecione" />
-                        </span>
-                      </SelectTrigger>
-                      {/* "popper" abre abaixo do campo; o padrão alinha ao item escolhido e, sem itens, não aparece. */}
-                      <SelectContent position="popper" align="start">
-                        {categoryList.map((item) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.name}
-                            {!item.is_active ? " (inativa)" : ""}
-                          </SelectItem>
-                        ))}
-                        {categoryList.length === 0 ? (
-                          <div className="flex flex-col items-center gap-2.5 px-3 py-4 text-center">
-                            <p className="text-xs text-muted-foreground">Nenhuma categoria cadastrada.</p>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setCategoryOpen(false)
-                                setCreatingCategory(true)
-                              }}
-                              className="inline-flex items-center gap-1 rounded-md text-xs font-medium text-gold underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
-                            >
-                              <HiOutlinePlus className="size-3.5" aria-hidden />
-                              Criar categoria
-                            </button>
-                          </div>
-                        ) : null}
-                      </SelectContent>
-                    </Select>
-                    <FieldError errors={[errors.categoryId]} />
+                    {/* Uma ou mais; a primeira escolhida é o rótulo exibido no card da loja. */}
+                    <CategoryMultiSelect
+                      id="product-category"
+                      options={categoryList}
+                      value={field.value ?? []}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      onCreate={() => setCreatingCategory(true)}
+                      disabled={busy}
+                      invalid={Boolean(errors.categoryIds)}
+                    />
+                    <FieldError errors={[errors.categoryIds]} />
                   </Field>
                 )}
               />
@@ -548,7 +513,11 @@ export function ProductDialog({
             setCategoryList((current) =>
               [...current, saved].sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
             )
-            form.setValue("categoryId", saved.id, { shouldDirty: true, shouldValidate: true })
+            // A nova categoria entra junto das já escolhidas.
+            form.setValue("categoryIds", [...(form.getValues("categoryIds") ?? []), saved.id], {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
           }}
         />
 

@@ -32,8 +32,8 @@ export async function createCategory(input: CategoryInput): Promise<ActionResult
   try {
     const slug = await uniqueSlug(auth.sql, "categories", parsed.data.name, "categoria")
     const [row] = await auth.sql<{ id: string }[]>`
-      insert into categories (name, slug, is_active)
-      values (${parsed.data.name}, ${slug}, ${parsed.data.isActive})
+      insert into categories (name, slug, description, is_active)
+      values (${parsed.data.name}, ${slug}, ${parsed.data.description || null}, ${parsed.data.isActive})
       returning id
     `
     catalogChanged()
@@ -57,7 +57,7 @@ export async function updateCategory(id: string, input: CategoryInput): Promise<
   try {
     const rows = await auth.sql`
       update categories
-      set name = ${parsed.data.name}, is_active = ${parsed.data.isActive}
+      set name = ${parsed.data.name}, description = ${parsed.data.description || null}, is_active = ${parsed.data.isActive}
       where id = ${parsedId.data}
       returning id
     `
@@ -100,7 +100,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
   let coverPath: string | null = null
   try {
     const [{ count }] = await auth.sql<{ count: number }[]>`
-      select count(*)::int as count from products where category_id = ${parsedId.data}
+      select count(*)::int as count from product_categories where category_id = ${parsedId.data}
     `
     if (count > 0) {
       return failure(

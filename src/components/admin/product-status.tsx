@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 import type { AdminProductListItem } from "@/lib/data/admin"
 
-type StatusInput = Pick<AdminProductListItem, "is_active" | "is_available" | "category">
+type StatusInput = Pick<AdminProductListItem, "is_active" | "is_available" | "categories">
 
 /** Filtros de situação da lista de produtos do painel (valor na URL → rótulo). */
 export const PRODUCT_STATUSES = {
@@ -29,8 +29,10 @@ export function productVisibility(product: StatusInput) {
     ? "Inativo"
     : !product.is_available
       ? "Indisponível"
-      : product.category && !product.category.is_active
-        ? "Categoria inativa"
+      : product.categories.length > 0 && product.categories.every((category) => !category.is_active)
+        ? product.categories.length === 1
+          ? "Categoria inativa"
+          : "Categorias inativas"
         : null
   return { visible: reason === null, reason }
 }

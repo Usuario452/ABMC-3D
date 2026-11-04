@@ -17,17 +17,20 @@ export type AdminProductListItem = Pick<
   ProductRow,
   "id" | "name" | "slug" | "price_cents" | "is_active" | "is_available" | "is_featured" | "updated_at"
 > & {
+  /** Primeira categoria do produto (a exibida como rótulo). */
   category: { id: string; name: string; is_active: boolean } | null
+  /** Todas as categorias do produto, na ordem escolhida. */
+  categories: { id: string; name: string; is_active: boolean }[]
   image: ProductImage | null
   /** Intenções de compra: pessoas (sessões do navegador) que adicionaram o produto ao carrinho. */
   cartIntents: number
 }
 
-export type AdminProduct = ProductRow & { images: ProductImage[] }
+export type AdminProduct = ProductRow & { images: ProductImage[]; categoryIds: string[] }
 
 export async function getAdminCategories(): Promise<AdminCategory[]> {
   const rows = await db()<AdminCategory[]>`
-    select c.*, (select count(*)::int from products p where p.category_id = c.id) as "productCount"
+    select c.*, (select count(*)::int from product_categories pc where pc.category_id = c.id) as "productCount"
     from categories c
     order by c.name
   `
@@ -35,9 +38,6 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
 }
 
 type AdminListRow = Omit<AdminProductListItem, "category" | "image"> & {
-  category_id: string
-  category_name: string
-  category_is_active: boolean
   image: RawImage | null
 }
 
@@ -45,7 +45,15 @@ export async function getAdminProducts(filters: { q?: string; categoryId?: strin
   const sql = db()
   const rows = await sql<AdminListRow[]>`
     select p.id, p.name, p.slug, p.price_cents, p.is_active, p.is_available, p.is_featured, p.updated_at,
-           c.id as category_id, c.name as category_name, c.is_active as category_is_active,
+           (
+             select coalesce(
+               json_agg(json_build_object('id', c.id, 'name', c.name, 'is_active', c.is_active) order by pc.position),
+               '[]'::json
+             )
+             from product_categories pc
+             join categories c on c.id = pc.category_id
+             where pc.product_id = p.id
+           ) as categories,
            (
              select json_build_object('id', i.id, 'storage_path', i.storage_path, 'alt_text', i.alt_text, 'position', i.position)
              from product_images i
@@ -60,18 +68,21 @@ export async function getAdminProducts(filters: { q?: string; categoryId?: strin
              where e.product_id = p.id and e.type = 'add_to_cart'
            ) as "cartIntents"
     from products p
-    join categories c on c.id = p.category_id
     where true
       ${filters.q ? sql`and p.name ilike ${`%${escapeLike(filters.q)}%`}` : sql``}
-      ${filters.categoryId ? sql`and p.category_id = ${filters.categoryId}` : sql``}
+      ${
+        filters.categoryId
+          ? sql`and exists (select 1 from product_categories fpc where fpc.product_id = p.id and fpc.category_id = ${filters.categoryId})`
+          : sql``
+      }
     order by p.updated_at desc
     limit ${filters.limit ?? 500}
   `
 
   return rows.map(
-    ({ category_id, category_name, category_is_active, image, ...product }): AdminProductListItem => ({
+    ({ image, ...product }): AdminProductListItem => ({
       ...product,
-      category: { id: category_id, name: category_name, is_active: category_is_active },
+      category: product.categories[0] ?? null,
       image: image ? mapImage(image) : null,
     }),
   )
@@ -82,13 +93,18 @@ export async function getAdminProduct(id: string): Promise<AdminProduct | null> 
   const [product] = await sql<ProductRow[]>`select * from products where id = ${id}`
   if (!product) return null
 
-  const images = await sql<RawImage[]>`
-    select id, storage_path, alt_text, position
-    from product_images
-    where product_id = ${id}
-    order by position
-  `
-  return { ...product, images: images.map(mapImage) }
+  const [images, categories] = await Promise.all([
+    sql<RawImage[]>`
+      select id, storage_path, alt_text, position
+      from product_images
+      where product_id = ${id}
+      order by position
+    `,
+    sql<{ category_id: string }[]>`
+      select category_id from product_categories where product_id = ${id} order by position
+    `,
+  ])
+  return { ...product, images: images.map(mapImage), categoryIds: categories.map((row) => row.category_id) }
 }
 
 export async function getCategoryOptions() {

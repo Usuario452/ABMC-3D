@@ -43,6 +43,8 @@ export const categorySchema = z.object({
     .trim()
     .min(1, "Informe o nome da categoria.")
     .max(80, "O nome pode ter no máximo 80 caracteres."),
+  // Opcional: texto vazio vira null no banco.
+  description: z.string().trim().max(300, "A descrição pode ter no máximo 300 caracteres.").optional(),
   // O slug não vem do formulário: o servidor gera a partir do nome na criação.
   isActive: z.boolean(),
 })
@@ -63,7 +65,12 @@ export const productSchema = z.object({
   description: z.string().trim().max(5000, "A descrição pode ter no máximo 5000 caracteres."),
   internalNotes: z.string().trim().max(2000, "A anotação pode ter no máximo 2000 caracteres.").default(""),
   price: priceField,
-  categoryId: z.string().min(1, "Selecione uma categoria.").pipe(uuidSchema),
+  // Uma ou mais categorias, na ordem escolhida; a primeira vira o rótulo exibido no card.
+  categoryIds: z
+    .array(uuidSchema)
+    .min(1, "Selecione ao menos uma categoria.")
+    .max(10, "Escolha no máximo 10 categorias.")
+    .refine((ids) => new Set(ids).size === ids.length, "Categoria repetida."),
   isActive: z.boolean(),
   isAvailable: z.boolean(),
   isFeatured: z.boolean(),
@@ -116,5 +123,18 @@ export function parseCatalogQuery(params: RawSearchParams): CatalogQuery {
   const rawPage = Number.parseInt(first(params.pagina) ?? "1", 10)
   const page = Number.isFinite(rawPage) && rawPage >= 1 ? Math.min(rawPage, 1000) : 1
 
-  return { q, category, sort, page }
+  let minPrice = parsePriceParam(first(params["preco-min"]))
+  let maxPrice = parsePriceParam(first(params["preco-max"]))
+  if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) [minPrice, maxPrice] = [maxPrice, minPrice]
+
+  const featured = first(params.destaques) === "1"
+  const recent = first(params.novidades) === "1"
+
+  return { q, category, sort, page, minPrice, maxPrice, featured, recent }
+}
+
+/** Preço da URL em reais inteiros (0 a 1.000.000); vazio ou inválido = sem limite. */
+function parsePriceParam(value: string | undefined): number | null {
+  if (!value || !/^\d{1,7}$/.test(value.trim())) return null
+  return Math.min(Number(value.trim()), 1_000_000)
 }

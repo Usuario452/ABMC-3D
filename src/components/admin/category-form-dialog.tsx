@@ -19,6 +19,7 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 import { prepareImageForUpload } from "@/lib/image-compress"
 import { ALLOWED_IMAGE_TYPES } from "@/lib/images"
 import { cn } from "@/lib/utils"
@@ -31,7 +32,14 @@ type SavedCategory = { id: string; name: string; is_active: boolean }
 type Props = {
   /** Botão que abre o modal. Sem ele, use `open`/`onOpenChange` para controlar a abertura. */
   trigger?: ReactNode
-  category?: { id: string; name: string; slug: string; is_active: boolean; coverUrl?: string | null }
+  category?: {
+    id: string
+    name: string
+    slug: string
+    description?: string | null
+    is_active: boolean
+    coverUrl?: string | null
+  }
   open?: boolean
   onOpenChange?: (open: boolean) => void
   /** Chamado após salvar (ex.: o cadastro de produto seleciona a categoria recém-criada). */
@@ -102,6 +110,7 @@ function CategoryForm({
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: category?.name ?? "",
+      description: category?.description ?? "",
       isActive: category?.is_active ?? true,
     },
   })
@@ -165,6 +174,23 @@ function CategoryForm({
             />
           </div>
           <FieldError errors={[errors.name]} />
+        </Field>
+
+        <Field data-invalid={Boolean(errors.description)}>
+          <div className="flex items-center justify-between gap-2">
+            <FieldLabel htmlFor="category-description">Descrição</FieldLabel>
+            <span className="text-xs text-muted-foreground">Opcional</span>
+          </div>
+          <Textarea
+            id="category-description"
+            rows={3}
+            maxLength={300}
+            placeholder="Uma frase sobre o que a pessoa encontra nesta categoria."
+            aria-invalid={Boolean(errors.description)}
+            className="resize-none"
+            {...form.register("description")}
+          />
+          <FieldError errors={[errors.description]} />
         </Field>
 
         <CoverField
@@ -270,7 +296,7 @@ function CoverField({
       {preview ? (
         <div
           className={cn(
-            "relative aspect-[16/7] overflow-hidden rounded-lg bg-muted ring-1 ring-foreground/5",
+            "relative mx-auto aspect-[4/5] w-48 overflow-hidden rounded-lg bg-muted ring-1 ring-foreground/5",
             dragging && "ring-2 ring-gold",
           )}
         >

@@ -34,7 +34,7 @@ export function ProductCard({ product, preload = false }: { product: ProductCard
         {product.category ? (
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{product.category.name}</p>
         ) : null}
-        <h3 className="line-clamp-2 text-sm font-semibold sm:text-base">
+        <h3 className="line-clamp-2 text-sm font-semibold">
           <Link
             href={`/produtos/${product.slug}`}
             className="outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:ring-2 focus-visible:after:ring-ring"
@@ -42,15 +42,28 @@ export function ProductCard({ product, preload = false }: { product: ProductCard
             {product.name}
           </Link>
         </h3>
-        <p className="mt-auto pt-2 text-base font-bold text-gold sm:text-lg">{formatPrice(product.priceCents)}</p>
+        <p className="mt-auto pt-2 text-sm font-bold text-gold sm:text-base">{formatPrice(product.priceCents)}</p>
       </div>
     </article>
   )
 }
 
-export function ProductGrid({ products, preloadFirst = 0 }: { products: ProductCardData[]; preloadFirst?: number }) {
+/** Colunas da grade quando ela divide a largura com a coluna de filtros. */
+export const GRID_WITH_SIDEBAR = "grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+const GRID_FULL = "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+
+export function ProductGrid({
+  products,
+  preloadFirst = 0,
+  columns = GRID_FULL,
+}: {
+  products: ProductCardData[]
+  preloadFirst?: number
+  /** Classes de colunas da grade (padrão: largura toda). */
+  columns?: string
+}) {
   return (
-    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 2xl:grid-cols-5">
+    <ul className={`grid gap-3 sm:gap-4 ${columns}`}>
       {products.map((product, index) => (
         <li key={product.id}>
           <ProductCard product={product} preload={index < preloadFirst} />

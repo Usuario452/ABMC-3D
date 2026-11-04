@@ -1,114 +1,112 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useState, useTransition } from "react"
-import { HiMagnifyingGlass, HiXMark } from "react-icons/hi2"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState, useTransition, type ReactNode } from "react"
+import { HiMagnifyingGlass } from "react-icons/hi2"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { buildCatalogHref } from "@/lib/catalog-url"
 import { cn } from "@/lib/utils"
-import { CATALOG_SORTS, type CatalogQuery, type CatalogSort, type CategorySummary } from "@/types/catalog"
+import { CATALOG_SORTS, type CatalogQuery, type CatalogSort } from "@/types/catalog"
 
-const ALL = "todas"
+// Pausa na digitação antes de buscar sozinho.
+const SEARCH_DEBOUNCE_MS = 400
 
-export function CatalogFilters({ query, categories }: { query: CatalogQuery; categories: CategorySummary[] }) {
+/**
+ * Barra de cima do catálogo: busca pelo nome, ordenação e (nas telas menores) o botão que abre os filtros.
+ * Os demais filtros ficam na coluna lateral (CatalogSidebar).
+ */
+export function CatalogFilters({
+  query,
+  filtersButton,
+}: {
+  query: CatalogQuery
+  /** Botão "Filtros" das telas menores (some no lg, onde a coluna lateral aparece). */
+  filtersButton?: ReactNode
+}) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [search, setSearch] = useState(query.q)
 
+  // Qualquer mudança de filtro volta para a primeira página.
+  const hrefFor = (next: Partial<CatalogQuery>) => buildCatalogHref({ ...query, ...next, page: 1 })
+
   const navigate = (next: Partial<CatalogQuery>) => {
-    // Qualquer mudança de filtro volta para a primeira página.
-    startTransition(() => router.push(buildCatalogHref({ ...query, ...next, page: 1 }), { scroll: false }))
+    startTransition(() => router.push(hrefFor(next), { scroll: false }))
   }
 
-  const hasFilters = Boolean(query.q || query.category || query.sort !== "nome-asc")
+  // Busca enquanto digita (após a pausa); troca a URL sem empilhar uma entrada por tecla no histórico.
+  useEffect(() => {
+    const term = search.trim().slice(0, 80)
+    if (term === query.q) return
+    const timer = setTimeout(() => {
+      startTransition(() => router.replace(hrefFor({ q: term }), { scroll: false }))
+    }, SEARCH_DEBOUNCE_MS)
+    return () => clearTimeout(timer)
+    // hrefFor só depende de query.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, query, router])
+
+  // A busca mudou por fora (cabeçalho, "Limpar filtros", voltar): o campo acompanha.
+  const [syncedQ, setSyncedQ] = useState(query.q)
+  if (query.q !== syncedQ) {
+    setSyncedQ(query.q)
+    if (query.q !== search.trim()) setSearch(query.q)
+  }
 
   return (
-    <div className={cn("space-y-3 transition-opacity", isPending && "opacity-70")} aria-busy={isPending}>
-      <div className="grid gap-3 sm:grid-cols-[1fr_200px_200px]">
-        <form
-          role="search"
-          className="relative"
-          onSubmit={(event) => {
-            event.preventDefault()
-            navigate({ q: search.trim().slice(0, 80) })
-          }}
-        >
-          <Label htmlFor="catalog-search" className="sr-only">
-            Buscar produtos pelo nome
-          </Label>
-          <HiMagnifyingGlass
-            className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <Input
-            id="catalog-search"
-            type="search"
-            enterKeyHint="search"
-            maxLength={80}
-            placeholder="Buscar produtos"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            className="h-10 pr-24 pl-10"
-          />
-          <Button type="submit" size="sm" className="absolute top-1/2 right-1 -translate-y-1/2">
-            Buscar
-          </Button>
-        </form>
+    <div
+      className={cn("flex flex-wrap items-center gap-3 transition-opacity sm:flex-nowrap", isPending && "opacity-70")}
+      aria-busy={isPending}
+    >
+      <form
+        role="search"
+        className="relative w-full sm:flex-1"
+        onSubmit={(event) => {
+          event.preventDefault()
+          navigate({ q: search.trim().slice(0, 80) })
+        }}
+      >
+        <Label htmlFor="catalog-search" className="sr-only">
+          Buscar produtos pelo nome
+        </Label>
+        <HiMagnifyingGlass
+          className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground"
+          aria-hidden
+        />
+        <Input
+          id="catalog-search"
+          type="search"
+          enterKeyHint="search"
+          maxLength={80}
+          placeholder="Buscar produtos"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="h-10 pr-3 pl-10"
+        />
+      </form>
 
-        <div>
-          <Label htmlFor="catalog-category" className="sr-only">
-            Filtrar por categoria
-          </Label>
-          <Select value={query.category || ALL} onValueChange={(value) => navigate({ category: value === ALL ? "" : value })}>
-            <SelectTrigger id="catalog-category" className="h-10 w-full">
-              <SelectValue placeholder="Categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Todas as categorias</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.slug}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {filtersButton}
 
-        <div>
-          <Label htmlFor="catalog-sort" className="sr-only">
-            Ordenar produtos
-          </Label>
-          <Select value={query.sort} onValueChange={(value) => navigate({ sort: value as CatalogSort })}>
-            <SelectTrigger id="catalog-sort" className="h-10 w-full">
-              <SelectValue placeholder="Ordenar" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(CATALOG_SORTS).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="min-w-0 flex-1 sm:w-52 sm:flex-none">
+        <Label htmlFor="catalog-sort" className="sr-only">
+          Ordenar produtos
+        </Label>
+        <Select value={query.sort} onValueChange={(value) => navigate({ sort: value as CatalogSort })}>
+          <SelectTrigger id="catalog-sort" className="w-full data-[size=default]:h-10">
+            <span className="text-muted-foreground">Ordenar:</span>
+            <SelectValue placeholder="Ordenar" />
+          </SelectTrigger>
+          <SelectContent align="end">
+            {Object.entries(CATALOG_SORTS).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-
-      {hasFilters ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setSearch("")
-            startTransition(() => router.push("/catalogo", { scroll: false }))
-          }}
-        >
-          <HiXMark aria-hidden />
-          Limpar filtros
-        </Button>
-      ) : null}
     </div>
   )
 }

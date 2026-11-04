@@ -6,7 +6,7 @@ const product = (name: string, extra: Partial<{ is_active: boolean; price_cents:
   name,
   is_active: true,
   is_available: true,
-  category,
+  categories: [category],
   price_cents: 1000,
   cartIntents: 0,
   updated_at: new Date("2026-11-01"),
@@ -47,3 +47,14 @@ describe("isProductSort", () => {
     expect(isProductSort(undefined)).toBe(false)
   })
 })
+
+describe("productVisibility", () => {
+  it("só esconde por categoria quando todas as categorias do produto estão inativas", () => {
+    const off = { ...category, is_active: false }
+    const base = { name: "X", is_active: true, is_available: true }
+    expect(productVisibility({ ...base, categories: [off, category] }).visible).toBe(true)
+    expect(productVisibility({ ...base, categories: [off] }).reason).toBe("Categoria inativa")
+    expect(productVisibility({ ...base, categories: [off, off] }).reason).toBe("Categorias inativas")
+  })
+})
+

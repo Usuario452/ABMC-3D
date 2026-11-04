@@ -5,6 +5,8 @@ export type CategoryRow = {
   slug: string
   /** Capa opcional no R2 (categories/<id>/…); null sem capa. */
   cover_path: string | null
+  /** Descrição curta opcional (até 300 caracteres); null sem descrição. */
+  description: string | null
   is_active: boolean
   created_at: Date
   updated_at: Date
@@ -79,6 +81,23 @@ export type CatalogQuery = {
   category: string
   sort: CatalogSort
   page: number
+  /** Faixa de preço em reais inteiros (inclusiva); null = sem limite. */
+  minPrice: number | null
+  maxPrice: number | null
+  /** Só produtos em destaque. */
+  featured: boolean
+  /** Só produtos publicados nos últimos `siteConfig.catalog.newDays` dias. */
+  recent: boolean
+}
+
+/** Contagens dos filtros da coluna lateral; cada uma ignora o próprio filtro (como no Mercado Livre). */
+export type CatalogFacets = {
+  categories: (CategorySummary & { count: number })[]
+  priceRanges: { min: number | null; max: number | null; count: number }[]
+  featured: number
+  recent: number
+  /** Menor e maior preço (centavos) entre os produtos dos demais filtros; null sem produtos. */
+  priceBounds: { min: number; max: number } | null
 }
 
 export type CatalogPage = {

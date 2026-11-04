@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { HiBars3 } from "react-icons/hi2"
+import { OpenCartLink } from "@/components/cart/open-cart-link"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -31,9 +32,12 @@ export function MobileNav({ categories }: { categories: CategorySummary[] }) {
           <MobileLink href="/catalogo" onNavigate={close}>
             Catálogo completo
           </MobileLink>
-          <MobileLink href="/carrinho" onNavigate={close}>
+          <OpenCartLink
+            onClick={close}
+            className="rounded-lg px-3 py-3 text-base font-medium transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          >
             Carrinho
-          </MobileLink>
+          </OpenCartLink>
           {categories.length > 0 ? (
             <>
               <Separator className="my-3" />
