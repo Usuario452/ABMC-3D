@@ -91,6 +91,119 @@ function missingConfig(issues: EnvIssue[]): R2Result {
   return { ok: false, error: `Armazenamento de imagens não configurado: ${issues.map((i) => i.name).join(", ")}.` }
 }
 
+const MAX_ERROR_BODY_BYTES = 8 * 1024
+const ERROR_BODY_TIMEOUT_MS = 1000
+const S3_ERROR_CODES = new Set([
+  "AccessDenied", "Unauthorized", "InvalidAccessKeyId", "SignatureDoesNotMatch",
+  "AuthorizationHeaderMalformed", "ExpiredRequest", "RequestTimeTooSkewed",
+  "InvalidArgument", "InvalidRequest", "InvalidBucketName", "NoSuchBucket",
+  "InvalidObjectName", "EntityTooLarge", "MetadataTooLarge", "MissingContentLength",
+  "IncompleteBody", "InvalidDigest", "BadDigest", "MalformedXML",
+  "XAmzContentSHA256Mismatch", "NotImplemented", "NotEntitled",
+  "InternalError", "ServiceUnavailable", "ClientDisconnect", "TooManyRequests",
+])
+
+/** IDs hexadecimais de 16 ou 32 caracteres; outros formatos são omitidos por segurança. */
+function safeRequestId(value: string | null) {
+  return value !== null && (value.length === 16 || value.length === 32) && !/[^a-f0-9]/i.test(value)
+    ? value
+    : undefined
+}
+
+/**
+ * Reconhece apenas o envelope S3 simples, com campos de texto e sem DTD, entidades
+ * externas ou elementos aninhados. XML incompleto/complexo não gera diagnóstico.
+ * Nenhum campo livre é devolvido, nem mesmo Message, Resource ou HostId.
+ */
+function safeS3Fields(xml: string) {
+  const envelope = xml.trim().match(
+    /^(?:<\?xml\s+[^?<>]*\?>\s*)?<Error(?:\s+xmlns=(?:"[^"<>]*"|'[^'<>]*'))?\s*>([\s\S]*)<\/Error>$/,
+  )
+  if (!envelope) return {}
+  const fields = envelope[1].trim()
+  const element = /<([A-Za-z][\w.-]*)>([^<>]*)<\/\1>\s*/y
+  let offset = 0
+  let code: string | undefined
+  let requestId: string | undefined
+  const seen = new Set<string>()
+  while (offset < fields.length) {
+    element.lastIndex = offset
+    const match = element.exec(fields)
+    if (!match || seen.has(match[1])) return {}
+    // Não interpreta entidades; rejeita referências malformadas em qualquer campo.
+    if (/&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[\da-fA-F]+);)/.test(match[2])) return {}
+    seen.add(match[1])
+    if (match[1] === "Code" && S3_ERROR_CODES.has(match[2])) code = match[2]
+    if (match[1] === "RequestId") requestId = safeRequestId(match[2])
+    offset = element.lastIndex
+  }
+  return { code, requestId }
+}
+
+/** Diagnóstico interno limitado; nunca devolve o corpo ou mensagens livres do R2. */
+export async function describeR2HttpError(response: Response): Promise<string> {
+  const base = `R2 respondeu ${response.status}.`
+  let code: string | undefined
+  let requestId = safeRequestId(response.headers.get("x-amz-request-id"))
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let stopped = false
+  const deadline = Date.now() + ERROR_BODY_TIMEOUT_MS
+  try {
+    if (response.body) {
+      reader = response.body.getReader()
+      const bodyReader = reader
+      const readBody = async () => {
+        const bytes = new Uint8Array(MAX_ERROR_BODY_BYTES)
+        let length = 0
+        while (length < MAX_ERROR_BODY_BYTES) {
+          if (stopped || Date.now() >= deadline) return null
+          const chunk = await bodyReader.read()
+          if (stopped || Date.now() >= deadline) return null
+          if (chunk.done) return new TextDecoder("utf-8", { fatal: true }).decode(bytes.subarray(0, length))
+          // O stream pode entregar um bloco maior que o espaço restante. Nesse caso,
+          // descarta o diagnóstico: nunca copia/processa mais de 8.192 bytes.
+          if (chunk.value.byteLength > MAX_ERROR_BODY_BYTES - length) return null
+          bytes.set(chunk.value, length)
+          length += chunk.value.byteLength
+        }
+        // Não solicita outra leitura para procurar EOF depois de atingir o limite.
+        return new TextDecoder("utf-8", { fatal: true }).decode(bytes.subarray(0, length))
+      }
+      const timeout = new Promise<null>((resolve) => {
+        timer = setTimeout(() => {
+          stopped = true
+          resolve(null)
+        }, ERROR_BODY_TIMEOUT_MS)
+      })
+      const body = await Promise.race([readBody(), timeout])
+      if (body !== null) {
+        const fields = safeS3Fields(body)
+        code = fields.code
+        requestId ??= fields.requestId
+      }
+    }
+  } catch {
+    // Falha no diagnóstico não substitui o erro HTTP original nem expõe a exceção.
+  } finally {
+    stopped = true
+    if (timer !== undefined) clearTimeout(timer)
+    // Cancelamento não pode bloquear o retorno, falhar nem reativar o leitor.
+    try {
+      if (reader) void reader.cancel().catch(() => {})
+    } catch {
+      // Preserva o diagnóstico mesmo se o cancelamento lançar sincronamente.
+    }
+  }
+  return base + (code ? ` Código S3: ${code}.` : "") + (requestId ? ` ID da requisição: ${requestId}.` : "")
+}
+
+/** Avaliação isolada da resposta: sucesso não abre nem lê o corpo de diagnóstico. */
+export async function uploadResponseResult(response: Response): Promise<R2Result> {
+  if (!response.ok) return { ok: false, error: await describeR2HttpError(response) }
+  return { ok: true }
+}
+
 /** Envia um objeto. Os arquivos são imutáveis (nome único), por isso o cache é de 1 ano. */
 export async function putObject(key: string, body: Uint8Array<ArrayBuffer>, contentType: string): Promise<R2Result> {
   const env = getR2Env()
@@ -105,8 +218,7 @@ export async function putObject(key: string, body: Uint8Array<ArrayBuffer>, cont
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     })
-    if (!response.ok) return { ok: false, error: `R2 respondeu ${response.status}.` }
-    return { ok: true }
+    return await uploadResponseResult(response)
   } catch {
     return { ok: false, error: "Não foi possível conectar ao R2." }
   }
