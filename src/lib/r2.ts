@@ -103,6 +103,19 @@ const S3_ERROR_CODES = new Set([
   "InternalError", "ServiceUnavailable", "ClientDisconnect", "TooManyRequests",
 ])
 
+// Somente nomes exatos conhecidos são convertidos em rótulos locais constantes.
+const S3_ARGUMENT_LABELS = new Map([
+  ["Content-Type", "content_type"],
+  ["Cache-Control", "cache_control"],
+  ["Content-Length", "content_length"],
+  ["Authorization", "authorization"],
+  ["Credential", "credential"],
+  ["AccessKeyId", "access_key_id"],
+  ["x-amz-content-sha256", "payload_hash"],
+  ["Bucket", "bucket"],
+  ["Key", "object_key"],
+])
+
 /** IDs hexadecimais de 16 ou 32 caracteres; outros formatos são omitidos por segurança. */
 function safeRequestId(value: string | null) {
   return value !== null && (value.length === 16 || value.length === 32) && !/[^a-f0-9]/i.test(value)
@@ -125,6 +138,7 @@ function safeS3Fields(xml: string) {
   let offset = 0
   let code: string | undefined
   let requestId: string | undefined
+  let argument: string | undefined
   const seen = new Set<string>()
   while (offset < fields.length) {
     element.lastIndex = offset
@@ -135,15 +149,17 @@ function safeS3Fields(xml: string) {
     seen.add(match[1])
     if (match[1] === "Code" && S3_ERROR_CODES.has(match[2])) code = match[2]
     if (match[1] === "RequestId") requestId = safeRequestId(match[2])
+    if (match[1] === "ArgumentName") argument = S3_ARGUMENT_LABELS.get(match[2])
     offset = element.lastIndex
   }
-  return { code, requestId }
+  return { code, requestId, argument }
 }
 
 /** Diagnóstico interno limitado; nunca devolve o corpo ou mensagens livres do R2. */
 export async function describeR2HttpError(response: Response): Promise<string> {
   const base = `R2 respondeu ${response.status}.`
   let code: string | undefined
+  let argument: string | undefined
   let requestId = safeRequestId(response.headers.get("x-amz-request-id"))
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -180,6 +196,7 @@ export async function describeR2HttpError(response: Response): Promise<string> {
       if (body !== null) {
         const fields = safeS3Fields(body)
         code = fields.code
+        argument = fields.argument
         requestId ??= fields.requestId
       }
     }
@@ -195,7 +212,7 @@ export async function describeR2HttpError(response: Response): Promise<string> {
       // Preserva o diagnóstico mesmo se o cancelamento lançar sincronamente.
     }
   }
-  return base + (code ? ` Código S3: ${code}.` : "") + (requestId ? ` ID da requisição: ${requestId}.` : "")
+  return base + (code ? ` Código S3: ${code}.` : "") + (argument ? ` Argumento: ${argument}.` : "") + (requestId ? ` ID da requisição: ${requestId}.` : "")
 }
 
 /** Avaliação isolada da resposta: sucesso não abre nem lê o corpo de diagnóstico. */
