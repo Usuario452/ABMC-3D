@@ -37,6 +37,18 @@ describe("diagnóstico seguro de erro HTTP do R2", () => {
     ["x-amz-content-sha256", "payload_hash"],
     ["Bucket", "bucket"],
     ["Key", "object_key"],
+    ["content-length", "content_length"],
+    ["CONTENT-TYPE", "content_type"],
+    ["authorization", "authorization"],
+    ["X-Amz-Content-Sha256", "payload_hash"],
+    ["Content-Encoding", "content_encoding"],
+    ["Transfer-Encoding", "transfer_encoding"],
+    ["x-amz-checksum-crc32", "checksum_crc32"],
+    ["x-amz-checksum-crc32c", "checksum_crc32c"],
+    ["x-amz-checksum-sha1", "checksum_sha1"],
+    ["X-Amz-Checksum-Sha256", "checksum_sha256"],
+    ["x-amz-sdk-checksum-algorithm", "checksum_algorithm"],
+    ["x-amz-trailer", "checksum_trailer"],
   ])("converte ArgumentName permitido em rótulo constante (%s)", async (name, label) => {
     const response = errorResponse(
       `<Error><Code>InvalidArgument</Code><ArgumentName>${name}</ArgumentName>` +
@@ -52,7 +64,7 @@ describe("diagnóstico seguro de erro HTTP do R2", () => {
   it.each([
     "", "nome-secreto-ficticio", "https://exemplo.invalid/token-ficticio",
     "Authorization\n", "Authorization\r", "Authorization\r\n",
-    " Content-Length", "content-length", "Content-Length&#10;",
+    " Content-Length", "content-length\n", "Content-Length&#10;",
   ])("omite ArgumentName desconhecido ou alterado, sem perder o código S3 (%#)", async (name) => {
     const response = errorResponse(`<Error><Code>InvalidArgument</Code><ArgumentName>${name}</ArgumentName></Error>`)
     expect(await describeR2HttpError(response)).toBe(`${BASE} Código S3: InvalidArgument.`)

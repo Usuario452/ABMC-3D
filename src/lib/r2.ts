@@ -103,7 +103,7 @@ const S3_ERROR_CODES = new Set([
   "InternalError", "ServiceUnavailable", "ClientDisconnect", "TooManyRequests",
 ])
 
-// Somente nomes exatos conhecidos são convertidos em rótulos locais constantes.
+// Nomes conhecidos, sem espaços ou controles, viram rótulos constantes; cabeçalhos não distinguem caixa.
 const S3_ARGUMENT_LABELS = new Map([
   ["Content-Type", "content_type"],
   ["Cache-Control", "cache_control"],
@@ -114,7 +114,15 @@ const S3_ARGUMENT_LABELS = new Map([
   ["x-amz-content-sha256", "payload_hash"],
   ["Bucket", "bucket"],
   ["Key", "object_key"],
-])
+  ["Content-Encoding", "content_encoding"],
+  ["Transfer-Encoding", "transfer_encoding"],
+  ["x-amz-checksum-crc32", "checksum_crc32"],
+  ["x-amz-checksum-crc32c", "checksum_crc32c"],
+  ["x-amz-checksum-sha1", "checksum_sha1"],
+  ["x-amz-checksum-sha256", "checksum_sha256"],
+  ["x-amz-sdk-checksum-algorithm", "checksum_algorithm"],
+  ["x-amz-trailer", "checksum_trailer"],
+].map(([name, label]) => [name.toLowerCase(), label]))
 
 /** IDs hexadecimais de 16 ou 32 caracteres; outros formatos são omitidos por segurança. */
 function safeRequestId(value: string | null) {
@@ -149,7 +157,7 @@ function safeS3Fields(xml: string) {
     seen.add(match[1])
     if (match[1] === "Code" && S3_ERROR_CODES.has(match[2])) code = match[2]
     if (match[1] === "RequestId") requestId = safeRequestId(match[2])
-    if (match[1] === "ArgumentName") argument = S3_ARGUMENT_LABELS.get(match[2])
+    if (match[1] === "ArgumentName") argument = S3_ARGUMENT_LABELS.get(match[2].toLowerCase())
     offset = element.lastIndex
   }
   return { code, requestId, argument }
