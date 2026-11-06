@@ -27,6 +27,44 @@ afterEach(() => {
 })
 
 describe("diagnóstico seguro de erro HTTP do R2", () => {
+  it.each([
+    ["Content-Type", "content_type"],
+    ["Cache-Control", "cache_control"],
+    ["Content-Length", "content_length"],
+    ["Authorization", "authorization"],
+    ["Credential", "credential"],
+    ["AccessKeyId", "access_key_id"],
+    ["x-amz-content-sha256", "payload_hash"],
+    ["Bucket", "bucket"],
+    ["Key", "object_key"],
+  ])("converte ArgumentName permitido em rótulo constante (%s)", async (name, label) => {
+    const response = errorResponse(
+      `<Error><Code>InvalidArgument</Code><ArgumentName>${name}</ArgumentName>` +
+      `<ArgumentValue>valor-secreto-ficticio</ArgumentValue><Message>mensagem-livre-ficticia</Message>` +
+      `<Resource>https://exemplo.invalid/bucket-ficticio/foto.webp</Resource><RequestId>${REQUEST_ID}</RequestId></Error>`,
+    )
+    expect(await uploadResponseResult(response)).toEqual({
+      ok: false,
+      error: `${BASE} Código S3: InvalidArgument. Argumento: ${label}. ID da requisição: ${REQUEST_ID}.`,
+    })
+  })
+
+  it.each([
+    "", "nome-secreto-ficticio", "https://exemplo.invalid/token-ficticio",
+    "Authorization\n", "Authorization\r", "Authorization\r\n",
+    " Content-Length", "content-length", "Content-Length&#10;",
+  ])("omite ArgumentName desconhecido ou alterado, sem perder o código S3 (%#)", async (name) => {
+    const response = errorResponse(`<Error><Code>InvalidArgument</Code><ArgumentName>${name}</ArgumentName></Error>`)
+    expect(await describeR2HttpError(response)).toBe(`${BASE} Código S3: InvalidArgument.`)
+  })
+
+  it.each(["Content-Type", "Authorization"])("descarta argumentos duplicados ou ambíguos (%s)", async (name) => {
+    const response = errorResponse(
+      `<Error><Code>InvalidArgument</Code><ArgumentName>Authorization</ArgumentName><ArgumentName>${name}</ArgumentName></Error>`,
+    )
+    expect(await describeR2HttpError(response)).toBe(BASE)
+  })
+
   it("extrai somente código permitido e ID seguro, descartando campos sensíveis", async () => {
     const body = `<?xml version="1.0" encoding="UTF-8"?>
       <Error xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
