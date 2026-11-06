@@ -1,6 +1,6 @@
 import "server-only"
 
-import { AwsClient } from "aws4fetch"
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { z } from "zod"
 import { getImagesBaseUrl, type EnvIssue } from "@/lib/env"
 import { MAX_PRESIGN_SECONDS, presignGetUrl, startOfDayAmzDate } from "@/lib/presign"
@@ -13,7 +13,7 @@ import { MAX_PRESIGN_SECONDS, presignGetUrl, startOfDayAmzDate } from "@/lib/pre
  */
 
 type R2Env =
-  | { ok: true; host: string; bucket: string; endpoint: string; client: AwsClient; accessKeyId: string; secretAccessKey: string }
+  | { ok: true; host: string; bucket: string; endpoint: string; client: S3Client; accessKeyId: string; secretAccessKey: string }
   | { ok: false; issues: EnvIssue[] }
 
 const R2_VARS = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET"] as const
@@ -40,14 +40,19 @@ function getR2Env(): R2Env {
     ok: true,
     host,
     bucket: values.R2_BUCKET!,
-    endpoint: `https://${host}/${values.R2_BUCKET}`,
+    endpoint: `https://${host}`,
     accessKeyId: values.R2_ACCESS_KEY_ID!,
     secretAccessKey: values.R2_SECRET_ACCESS_KEY!,
-    client: new AwsClient({
-      accessKeyId: values.R2_ACCESS_KEY_ID!,
-      secretAccessKey: values.R2_SECRET_ACCESS_KEY!,
-      service: "s3",
+    client: new S3Client({
+      endpoint: `https://${host}`,
       region: "auto",
+      forcePathStyle: true,
+      credentials: { accessKeyId: values.R2_ACCESS_KEY_ID!, secretAccessKey: values.R2_SECRET_ACCESS_KEY! },
+      // PutObject não exige checksum opcional: evita CRC/trailers automáticos em APIs S3 compatíveis.
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
+      maxAttempts: 3,
+      requestHandler: { connectionTimeout: 5_000, requestTimeout: 20_000 },
     }),
   }
   return cached
@@ -82,10 +87,6 @@ export function getProductImageUrl(storagePath: string) {
 }
 
 export type R2Result = { ok: true } | { ok: false; error: string }
-
-function objectUrl(endpoint: string, key: string) {
-  return `${endpoint}/${key.split("/").map(encodeURIComponent).join("/")}`
-}
 
 function missingConfig(issues: EnvIssue[]): R2Result {
   return { ok: false, error: `Armazenamento de imagens não configurado: ${issues.map((i) => i.name).join(", ")}.` }
@@ -229,53 +230,72 @@ export async function uploadResponseResult(response: Response): Promise<R2Result
   return { ok: true }
 }
 
-/** Envia um objeto. Os arquivos são imutáveis (nome único), por isso o cache é de 1 ano. */
+/** Somente status, códigos e rótulos conhecidos; nunca registra o objeto de erro do SDK. */
+function sdkFailure(error: unknown): R2Result {
+  const generic: R2Result = { ok: false, error: "Não foi possível conectar ao R2." }
+  if (!error || typeof error !== "object") return generic
+  const detail = error as Record<string, unknown>
+  const metadata = detail.$metadata && typeof detail.$metadata === "object"
+    ? detail.$metadata as Record<string, unknown> : {}
+  const status = metadata.httpStatusCode
+  if (typeof status !== "number" || !Number.isInteger(status) || status < 100 || status > 599) return generic
+  const code = [detail.name, detail.Code].find((value): value is string => typeof value === "string" && S3_ERROR_CODES.has(value))
+  const argument = typeof detail.ArgumentName === "string" ? S3_ARGUMENT_LABELS.get(detail.ArgumentName.toLowerCase()) : undefined
+  const requestId = safeRequestId(typeof metadata.requestId === "string" ? metadata.requestId : null)
+  return { ok: false, error: `R2 respondeu ${status}.` + (code ? ` Código S3: ${code}.` : "") + (argument ? ` Argumento: ${argument}.` : "") + (requestId ? ` ID da requisição: ${requestId}.` : "") }
+}
+
+/** Envia os bytes já otimizados; os nomes únicos e as URLs existentes são preservados. */
 export async function putObject(key: string, body: Uint8Array<ArrayBuffer>, contentType: string): Promise<R2Result> {
   const env = getR2Env()
   if (!env.ok) return missingConfig(env.issues)
-
+  if (!key || key.startsWith("/") || key.includes("\0")) return { ok: false, error: "Caminho de imagem inválido." }
+  if (!body.byteLength) return { ok: false, error: "A imagem está vazia." }
+  if (!["image/jpeg", "image/png", "image/webp"].includes(contentType)) return { ok: false, error: "Formato de imagem não suportado." }
   try {
-    const response = await env.client.fetch(objectUrl(env.endpoint, key), {
-      method: "PUT",
-      body,
-      headers: {
-        "Content-Type": contentType,
-        // O fetch do Next pode reconstruir o corpo como stream; o R2 exige o tamanho explícito.
-        "Content-Length": String(body.byteLength),
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
-    })
-    return await uploadResponseResult(response)
-  } catch {
-    return { ok: false, error: "Não foi possível conectar ao R2." }
+    await env.client.send(new PutObjectCommand({
+      Bucket: env.bucket, Key: key, Body: body,
+      ContentType: contentType, ContentLength: body.byteLength,
+      CacheControl: "public, max-age=31536000, immutable",
+    }))
+    return { ok: true }
+  } catch (error) {
+    return sdkFailure(error)
   }
 }
 
-/** Lê um objeto do bucket (usado pela rota pública /img, de endereço fixo). Retorna null se não existir. */
+/** Mantém o contrato Response utilizado pela rota pública /img. */
 export async function getObject(key: string): Promise<Response | null> {
   const env = getR2Env()
   if (!env.ok) return null
   try {
-    const response = await env.client.fetch(objectUrl(env.endpoint, key))
-    return response.ok ? response : null
+    const object = await env.client.send(new GetObjectCommand({ Bucket: env.bucket, Key: key }))
+    if (!object.Body) return null
+    const headers = new Headers()
+    if (object.ContentType) headers.set("Content-Type", object.ContentType)
+    if (object.ContentLength !== undefined) headers.set("Content-Length", String(object.ContentLength))
+    if (object.CacheControl) headers.set("Cache-Control", object.CacheControl)
+    if (object.ETag) headers.set("ETag", object.ETag)
+    if (object.LastModified) headers.set("Last-Modified", object.LastModified.toUTCString())
+    return new Response(object.Body.transformToWebStream(), { headers })
   } catch {
     return null
   }
 }
 
-/** Remove objetos. Chaves inexistentes não são erro (o R2 responde 204). */
+/** Remove somente as chaves explicitamente fornecidas; objeto inexistente continua sendo sucesso. */
 export async function deleteObjects(keys: string[]): Promise<R2Result> {
-  if (keys.length === 0) return { ok: true }
+  if (!keys.length) return { ok: true }
   const env = getR2Env()
   if (!env.ok) return missingConfig(env.issues)
-
-  try {
-    const responses = await Promise.all(
-      keys.map((key) => env.client.fetch(objectUrl(env.endpoint, key), { method: "DELETE" })),
-    )
-    const failed = responses.find((response) => !response.ok && response.status !== 404)
-    return failed ? { ok: false, error: `R2 respondeu ${failed.status}.` } : { ok: true }
-  } catch {
-    return { ok: false, error: "Não foi possível conectar ao R2." }
-  }
+  const results = await Promise.all(keys.map(async (key): Promise<R2Result> => {
+    try {
+      await env.client.send(new DeleteObjectCommand({ Bucket: env.bucket, Key: key }))
+      return { ok: true }
+    } catch (error) {
+      const detail = error && typeof error === "object" ? error as { $metadata?: { httpStatusCode?: number } } : null
+      return detail?.$metadata?.httpStatusCode === 404 ? { ok: true } : sdkFailure(error)
+    }
+  }))
+  return results.find((result) => !result.ok) ?? { ok: true }
 }
