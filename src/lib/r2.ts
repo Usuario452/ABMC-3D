@@ -232,6 +232,8 @@ export async function putObject(key: string, body: Uint8Array<ArrayBuffer>, cont
       body,
       headers: {
         "Content-Type": contentType,
+        // O fetch do Next pode reconstruir o corpo como stream; o R2 exige o tamanho explícito.
+        "Content-Length": String(body.byteLength),
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     })

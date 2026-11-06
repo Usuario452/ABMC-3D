@@ -36,6 +36,8 @@ function imageRemotePatterns(): RemotePattern[] {
 }
 
 const nextConfig: NextConfig = {
+  // Argumentos de Server Functions podem conter senhas; nunca registrá-los no desenvolvimento.
+  logging: process.env.NODE_ENV === "development" ? { serverFunctions: false } : undefined,
   cacheComponents: true,
   partialPrefetching: true,
   cacheLife: {
