@@ -1,8 +1,9 @@
 import Link from "next/link"
-import { FaWhatsapp } from "react-icons/fa6"
+import { FaInstagram } from "react-icons/fa6"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { OpenCartLink } from "@/components/cart/open-cart-link"
 import { CurrentYear } from "@/components/layout/current-year"
+import { FooterWhatsAppButton } from "@/components/layout/footer-whatsapp-button"
 import { siteConfig } from "@/config/site"
 import { getWhatsAppContactUrl } from "@/lib/whatsapp"
 
@@ -59,18 +60,19 @@ export function SiteFooter() {
             </ul>
           </nav>
 
-          <div>
+          <div className="min-w-0">
             <h2 className="text-xs font-semibold tracking-wide text-white/40 uppercase">Atendimento</h2>
+            <a
+              href="https://www.instagram.com/abmc3d/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${linkClass} mt-4 inline-flex items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70`}
+            >
+              <FaInstagram className="size-4 shrink-0" aria-hidden />
+              Siga nosso Instagram
+            </a>
             {whatsappUrl ? (
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-2 font-medium text-primary outline-none hover:underline focus-visible:underline"
-              >
-                <FaWhatsapp className="size-4" aria-hidden />
-                Fale conosco pelo WhatsApp
-              </a>
+              <FooterWhatsAppButton url={whatsappUrl} />
             ) : (
               <p className="mt-4 text-white/55">Contato pelo WhatsApp em breve.</p>
             )}
