@@ -6,6 +6,7 @@ import { useEffect, useState, useTransition } from "react"
 import { FaWhatsapp } from "react-icons/fa6"
 import { HiOutlinePhoto, HiOutlineShoppingBag } from "react-icons/hi2"
 import SwipeRow from "@/components/SwipeRow"
+import StarBorder from "@/components/StarBorder"
 import { checkCart, createWhatsAppOrder, type CartCheck } from "@/actions/cart"
 import { QuantityInput } from "@/components/cart/quantity-input"
 import { StateMessage } from "@/components/shared/state-message"
@@ -187,15 +188,28 @@ export function CartView({ onNavigate }: { onNavigate?: () => void }) {
             {formatPrice(total)}
           </span>
         </div>
-        <Button
-          className="h-11 w-full rounded-full"
+        <StarBorder
+          color="#ffffff"
+          trailColor="#ffffff"
+          duration={4}
+          direction="clockwise"
+          stars={1}
+          trailLength={0.3}
+          thickness={1}
+          radius={29}
+          glow={0.6}
+          hover="lap"
+          sparkle={false}
+          clickPulse
+          theme="dark"
+          className="cart-checkout-star"
           onClick={handleCheckout}
           // Itens indisponíveis só ficam marcados na lista e não entram no pedido; o resto segue normalmente.
           disabled={!whatsappReady || isSubmitting || sync.status === "checking" || availableItems.length === 0}
         >
           <FaWhatsapp className="size-5" aria-hidden />
           {isSubmitting ? "Gerando pedido…" : "Finalizar pelo WhatsApp"}
-        </Button>
+        </StarBorder>
         {checkoutError ? (
           <p className="text-center text-xs text-destructive" role="alert">
             {checkoutError}

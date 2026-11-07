@@ -18,6 +18,7 @@ export function CartDrawer() {
     <Sheet open={open} onOpenChange={setCartDrawerOpen}>
       <SheetContent
         side="right"
+        overlayClassName="supports-backdrop-filter:backdrop-blur-md"
         // Sem foco automático no primeiro botão (a lixeira ficava destacada ao abrir).
         onOpenAutoFocus={(event) => event.preventDefault()}
         className="gap-0 overflow-hidden border-l-0 bg-white p-0 text-zinc-950 shadow-2xl [--foreground:#18181b] [--muted-foreground:#71717a] [--border:#e4e4e7] [--muted:#f4f4f5] data-[side=right]:w-full data-[side=right]:rounded-l-[24px] data-[side=right]:sm:max-w-md"
