@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { HiChevronRight, HiMagnifyingGlass, HiOutlineCubeTransparent } from "react-icons/hi2"
 import { HeaderPark } from "@/components/layout/header-park"
+import { PreviewCartProducts } from "@/components/cart/preview-cart-products"
 import { CatalogBrowser } from "@/components/catalog/catalog-browser"
 import { HeroSearch } from "@/components/catalog/hero-search"
 import { CatalogBrowserSkeleton } from "@/components/catalog/skeletons"
@@ -81,6 +82,7 @@ export default function CatalogPage({ searchParams }: PageProps<"/catalogo">) {
       <div className="relative isolate">
         <div aria-hidden className="bg-grid-page pointer-events-none absolute inset-0 -z-10" />
         <div className="page-container py-10">
+          <PreviewCartProducts />
           <Suspense fallback={<CatalogBrowserSkeleton />}>
             <CatalogContent searchParams={searchParams} />
           </Suspense>

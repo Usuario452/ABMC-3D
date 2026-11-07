@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { FaWhatsapp } from "react-icons/fa6"
 import { HiArrowRight, HiOutlineCubeTransparent, HiOutlineSquares2X2 } from "react-icons/hi2"
 import { HeaderPark } from "@/components/layout/header-park"
+import { PreviewCartProducts } from "@/components/cart/preview-cart-products"
 import { AllProducts } from "@/components/home/all-products"
 import { CategoriesCarousel } from "@/components/home/categories-carousel"
 import { CustomOrderCard } from "@/components/home/custom-order-card"
@@ -102,6 +103,7 @@ export default function HomePage() {
           <CustomOrderCard />
 
           <section className="page-container pt-14 pb-16" aria-labelledby="todos-titulo">
+            <PreviewCartProducts />
             <Suspense
               fallback={
                 <>

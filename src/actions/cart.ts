@@ -6,6 +6,7 @@ import { failure, success, type ActionResult } from "@/lib/actions/result"
 import type { CartSnapshotLine } from "@/lib/cart/cart"
 import { getProductsForCart } from "@/lib/data/catalog"
 import { getDatabaseEnv } from "@/lib/env"
+import { getPreviewCartCheck, isPreviewCartProduct } from "@/lib/preview-cart-products"
 import { cartRequestSchema, uuidSchema } from "@/lib/validation/schemas"
 import { buildOrderMessage, buildWhatsAppUrl, getWhatsAppConfig, orderTotal } from "@/lib/whatsapp"
 
@@ -18,6 +19,9 @@ export type CartCheck = {
 async function checkItems(input: unknown): Promise<ActionResult<CartCheck>> {
   const parsed = cartRequestSchema.safeParse(input)
   if (!parsed.success) return failure("O carrinho contém itens inválidos.")
+
+  const previewCheck = getPreviewCartCheck(parsed.data)
+  if (previewCheck) return success(previewCheck)
 
   if (!getDatabaseEnv().ok) {
     return failure("A loja ainda não foi configurada. Tente novamente mais tarde.", { code: "config" })
@@ -71,6 +75,11 @@ export async function createWhatsAppOrder(
   /** Sessão do navegador, só para ligar o pedido ao carrinho e à origem da visita no painel. */
   sessionId?: unknown,
 ): Promise<ActionResult<{ url: string; check: CartCheck }>> {
+  const previewRequest = cartRequestSchema.safeParse(input)
+  if (previewRequest.success && previewRequest.data.some((item) => isPreviewCartProduct(item.productId))) {
+    return failure("Os produtos de teste do Preview não geram pedidos pelo WhatsApp.")
+  }
+
   const whatsapp = getWhatsAppConfig()
   if (!whatsapp.ok) {
     return failure(
