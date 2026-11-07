@@ -20,7 +20,7 @@ export function CartDrawer() {
         side="right"
         // Sem foco automático no primeiro botão (a lixeira ficava destacada ao abrir).
         onOpenAutoFocus={(event) => event.preventDefault()}
-        className="gap-0 overflow-hidden border-l-0 p-0 shadow-2xl data-[side=right]:w-full data-[side=right]:rounded-l-[24px] data-[side=right]:sm:max-w-md"
+        className="gap-0 overflow-hidden border-l-0 bg-white p-0 text-zinc-950 shadow-2xl [--foreground:#18181b] [--muted-foreground:#71717a] [--border:#e4e4e7] [--muted:#f4f4f5] data-[side=right]:w-full data-[side=right]:rounded-l-[24px] data-[side=right]:sm:max-w-md"
       >
         <SheetHeader className="flex-row items-center gap-2.5 px-5 pt-5 pb-3">
           <SheetTitle className="text-lg font-semibold">Carrinho</SheetTitle>
