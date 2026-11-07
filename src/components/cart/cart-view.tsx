@@ -116,7 +116,7 @@ export function CartView({ onNavigate }: { onNavigate?: () => void }) {
           icon={HiOutlineShoppingBag}
           title="Seu carrinho está vazio"
           description="Explore o catálogo e adicione os produtos que deseja encomendar."
-          className="w-full border-0"
+          className="w-full border-0 bg-transparent [&>span]:bg-white/10 [&>span]:text-white/80"
           action={
             <Button asChild>
               <Link href="/catalogo" onClick={onNavigate}>
@@ -211,7 +211,7 @@ export function CartView({ onNavigate }: { onNavigate?: () => void }) {
           {isSubmitting ? "Gerando pedido…" : "Finalizar pelo WhatsApp"}
         </StarBorder>
         {checkoutError ? (
-          <p className="text-center text-xs text-destructive" role="alert">
+          <p className="text-center text-xs text-red-100" role="alert">
             {checkoutError}
           </p>
         ) : null}
