@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { recordCatalogEvent, recordProductEvent } from "@/lib/analytics"
 import { parseUserAgent } from "@/lib/user-agent"
+import { isPreviewCartProduct } from "@/lib/preview-cart-products"
 
 const optionalId = z.uuid().nullish().transform((value) => value ?? null)
 
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
   if (parseUserAgent(request.headers.get("user-agent")).bot) return new Response(null, { status: 204 })
 
   const event = parsed.data
+  if ("productId" in event && isPreviewCartProduct(event.productId)) return new Response(null, { status: 204 })
   if (event.type === "search") {
     await recordCatalogEvent({
       type: "search",

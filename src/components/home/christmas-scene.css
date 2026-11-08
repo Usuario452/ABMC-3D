@@ -1,0 +1,192 @@
+.abmc-christmas-scene {
+  position: absolute;
+  inset: 0;
+  z-index: -20;
+  overflow: hidden;
+  pointer-events: none;
+  container-type: size;
+  background: linear-gradient(#0a5762, #0a4a54 60%, #083d46);
+}
+
+/* O palco e todos os efeitos compartilham as proporções da imagem original. */
+.abmc-christmas-stage {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: max(100cqw, 100cqh);
+  aspect-ratio: 1;
+  transform: translate3d(calc(-50% + var(--px, 0px)), var(--py, 0px), 0);
+  transition: transform .8s cubic-bezier(.2, .6, .2, 1);
+}
+
+.abmc-christmas-breathe {
+  position: absolute;
+  inset: 0;
+  transform-origin: 55% 45%;
+  animation: abmc-christmas-breathe 28s ease-in-out infinite alternate;
+}
+
+.abmc-christmas-image { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; }
+
+.abmc-christmas-glow {
+  position: absolute;
+  width: var(--s, 9%);
+  aspect-ratio: 1;
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  opacity: .5;
+  background: radial-gradient(circle, rgba(255,176,70,.75) 0%, rgba(255,140,40,.35) 35%, rgba(255,120,30,0) 70%);
+  animation: abmc-christmas-flicker var(--d, 6s) ease-in-out var(--dl, 0s) infinite;
+}
+
+.abmc-christmas-star {
+  position: absolute;
+  left: 73.5%;
+  top: 6.7%;
+  width: 14%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  background: radial-gradient(circle, rgba(255,226,140,.8), rgba(255,210,100,.25) 30%, rgba(255,200,80,0) 65%);
+  animation: abmc-christmas-pulse 5s ease-in-out infinite;
+}
+
+.abmc-christmas-smoke { position: absolute; left: var(--x); top: var(--y); width: 0; height: 0; }
+.abmc-christmas-smoke i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3.2cqw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,.55), rgba(255,255,255,0) 68%);
+  filter: blur(3px);
+  opacity: 0;
+  animation: abmc-christmas-rise 9s ease-out var(--dl) infinite;
+}
+
+.abmc-christmas-snow, .abmc-christmas-vignette { position: absolute; inset: 0; width: 100%; height: 100%; }
+.abmc-christmas-vignette {
+  background: radial-gradient(120% 90% at 50% 35%, transparent 55%, rgba(3,28,34,.45) 100%),
+    linear-gradient(to bottom, transparent 55%, rgba(5,40,48,.55) 100%);
+}
+
+@keyframes abmc-christmas-breathe { from { transform: scale(1); } to { transform: scale(1.035) translateY(-.4%); } }
+@keyframes abmc-christmas-flicker {
+  0%, 100% { opacity: .38; transform: translate(-50%, -50%) scale(.96); }
+  18% { opacity: .62; }
+  37% { opacity: .46; transform: translate(-50%, -50%) scale(1); }
+  58% { opacity: .72; transform: translate(-50%, -50%) scale(1.04); }
+  80% { opacity: .5; }
+}
+@keyframes abmc-christmas-pulse {
+  0%, 100% { opacity: .35; transform: translate(-50%, -50%) scale(.85); }
+  50% { opacity: .85; transform: translate(-50%, -50%) scale(1.1); }
+}
+@keyframes abmc-christmas-rise {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(.5); }
+  15% { opacity: .55; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 40px)), -18cqw) scale(2.6); }
+}
+
+.abmc-christmas-scene[data-paused="true"] .abmc-christmas-breathe,
+.abmc-christmas-scene[data-paused="true"] .abmc-christmas-glow,
+.abmc-christmas-scene[data-paused="true"] .abmc-christmas-star,
+.abmc-christmas-scene[data-paused="true"] .abmc-christmas-smoke i { animation-play-state: paused; }
+
+/* O marcador só existe na home do Preview do PR #5; não afeta outras rotas ou portais. */
+body:has(.abmc-christmas-home [data-christmas-active]) {
+  background-color: #083d46;
+}
+
+.abmc-christmas-home,
+body:has(.abmc-christmas-home [data-christmas-active]) > footer {
+  --background: #083d46;
+  --foreground: #fff8ee;
+  --card: #0a3b43;
+  --card-foreground: #fff8ee;
+  --brand-surface: #0a3b43;
+  --brand-surface-elevated: #0b4852;
+  --brand-foreground: #fff8ee;
+  --muted: #0b4852;
+  --muted-foreground: #c8ddda;
+  --secondary: #0b4852;
+  --secondary-foreground: #fff8ee;
+  --border: #39717a;
+  --input: #39717a;
+  --accent: #125561;
+  --accent-foreground: #fff8ee;
+  --destructive: #ff9999;
+  --success: #8fdaa9;
+  --ring: #e6cf9c;
+  --gold: #f2d6a2;
+  --gold-gradient-text: linear-gradient(135deg, #fff2d5, #e6cf9c);
+  color: var(--foreground);
+}
+
+.abmc-christmas-home {
+  background: radial-gradient(ellipse at 8% 60%, rgb(230 207 156 / .06), transparent 32%),
+    radial-gradient(ellipse at 90% 90%, rgb(183 218 208 / .05), transparent 28%), #083d46;
+}
+
+.abmc-christmas-home [data-header-park] {
+  background-color: #083d46;
+}
+
+.abmc-christmas-home [data-christmas-fade] {
+  background-image: linear-gradient(to bottom, transparent, #083d46);
+}
+
+.abmc-christmas-home section[aria-labelledby="personalizados-titulo"] > div {
+  background: linear-gradient(110deg, #072e36 45%, #0d535b);
+  border: 1px solid rgb(230 207 156 / .24);
+}
+
+.abmc-christmas-home article {
+  border: 1px solid rgb(190 225 216 / .2);
+}
+
+.abmc-christmas-details {
+  padding-block: 1rem;
+  color: #e6cf9c;
+  opacity: .6;
+  text-align: center;
+  letter-spacing: .7em;
+  pointer-events: none;
+}
+
+body:has(.abmc-christmas-home [data-christmas-active]) > footer {
+  background: radial-gradient(ellipse at 75% 100%, rgb(230 207 156 / .06), transparent 55%);
+}
+
+body:has(.abmc-christmas-home [data-christmas-active]) > footer p,
+body:has(.abmc-christmas-home [data-christmas-active]) > footer nav a,
+body:has(.abmc-christmas-home [data-christmas-active]) > footer a[target="_blank"] {
+  color: #c8ddda;
+}
+
+body:has(.abmc-christmas-home [data-christmas-active]) > footer h2,
+body:has(.abmc-christmas-home [data-christmas-active]) > footer a:hover,
+body:has(.abmc-christmas-home [data-christmas-active]) > footer a:focus-visible {
+  color: #fff8ee;
+}
+
+/* Canvas limitado à tela, independentemente da altura do catálogo. */
+.abmc-christmas-ambient {
+  position: fixed;
+  z-index: 1;
+  background: none;
+  opacity: .32;
+  container-type: normal;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .abmc-christmas-breathe, .abmc-christmas-glow, .abmc-christmas-star, .abmc-christmas-smoke i { animation: none; }
+  .abmc-christmas-glow, .abmc-christmas-star { opacity: .5; }
+  .abmc-christmas-smoke { display: none; }
+  .abmc-christmas-stage { transition: none; transform: translate3d(-50%, 0, 0); }
+}

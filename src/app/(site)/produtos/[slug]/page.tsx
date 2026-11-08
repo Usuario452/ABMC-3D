@@ -17,6 +17,7 @@ import { Markdown, markdownToText } from "@/components/shared/markdown"
 import { siteConfig } from "@/config/site"
 import { getProductBySlug, getRelatedProducts } from "@/lib/data/catalog"
 import { load } from "@/lib/data/load"
+import { getPreviewProductDetail } from "@/lib/preview-cart-products"
 import { formatPrice } from "@/lib/format"
 import { Price } from "@/components/catalog/price"
 import { SLUG_PATTERN } from "@/lib/slug"
@@ -102,7 +103,8 @@ async function ProductContent({ params }: { params: PageProps<"/produtos/[slug]"
   const { slug } = await params
   if (!SLUG_PATTERN.test(slug)) notFound()
 
-  const result = await load(() => getProductBySlug(slug))
+  const previewProduct = getPreviewProductDetail(slug)
+  const result = previewProduct ? { ok: true as const, data: previewProduct } : await load(() => getProductBySlug(slug))
   if (!result.ok) {
     return (
       <div className="page-container py-10">

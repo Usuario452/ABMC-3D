@@ -4,7 +4,9 @@ import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useState, useTransition } from "react"
 import { FaWhatsapp } from "react-icons/fa6"
-import { HiOutlinePhoto, HiOutlineShoppingBag, HiOutlineTrash } from "react-icons/hi2"
+import { HiOutlinePhoto, HiOutlineShoppingBag } from "react-icons/hi2"
+import SwipeRow from "@/components/SwipeRow"
+import StarBorder from "@/components/StarBorder"
 import { checkCart, createWhatsAppOrder, type CartCheck } from "@/actions/cart"
 import { QuantityInput } from "@/components/cart/quantity-input"
 import { StateMessage } from "@/components/shared/state-message"
@@ -114,7 +116,7 @@ export function CartView({ onNavigate }: { onNavigate?: () => void }) {
           icon={HiOutlineShoppingBag}
           title="Seu carrinho está vazio"
           description="Explore o catálogo e adicione os produtos que deseja encomendar."
-          className="w-full border-0"
+          className="w-full border-0 bg-transparent [&>span]:bg-white/10 [&>span]:text-white/80"
           action={
             <Button asChild>
               <Link href="/catalogo" onClick={onNavigate}>
@@ -166,7 +168,7 @@ export function CartView({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-2">
+      <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-2">
         {items.map((item) => (
           <CartLine
             key={item.productId}
@@ -186,17 +188,30 @@ export function CartView({ onNavigate }: { onNavigate?: () => void }) {
             {formatPrice(total)}
           </span>
         </div>
-        <Button
-          className="h-11 w-full rounded-full"
+        <StarBorder
+          color="#ffffff"
+          trailColor="#ffffff"
+          duration={4}
+          direction="clockwise"
+          stars={1}
+          trailLength={0.3}
+          thickness={1}
+          radius={29}
+          glow={0.6}
+          hover="lap"
+          sparkle={false}
+          clickPulse
+          theme="dark"
+          className="cart-checkout-star"
           onClick={handleCheckout}
           // Itens indisponíveis só ficam marcados na lista e não entram no pedido; o resto segue normalmente.
           disabled={!whatsappReady || isSubmitting || sync.status === "checking" || availableItems.length === 0}
         >
           <FaWhatsapp className="size-5" aria-hidden />
           {isSubmitting ? "Gerando pedido…" : "Finalizar pelo WhatsApp"}
-        </Button>
+        </StarBorder>
         {checkoutError ? (
-          <p className="text-center text-xs text-destructive" role="alert">
+          <p className="text-center text-xs text-red-100" role="alert">
             {checkoutError}
           </p>
         ) : null}
@@ -222,40 +237,61 @@ function CartLine({
   const subtotal = item.unitPriceCents * item.quantity
 
   return (
-    <li className="flex gap-3 rounded-xl p-2 transition-colors hover:bg-muted/50">
+    <li>
+      <SwipeRow
+        drawer="one"
+        disabled={false}
+        actions={[{ id: "delete", label: "Excluir" }]}
+        actionColor="#888888"
+        drawerColor="#3f3f46"
+        rowColor="#27272a"
+        textColor="#ffffff"
+        height={64}
+        radius={17}
+        actionWidth={68}
+        direction="left"
+        snapBounce={0.2}
+        resistance={0.6}
+        collapseMs={200}
+        commitAt={0.6}
+        fullSwipe
+        label={`Produto no carrinho: ${item.name}`}
+        className="cart-swipe-row"
+        onCommit={() => setCartItems((current) => removeFromCart(current, item.productId))}
+      >
       <Link
         href={`/produtos/${item.slug}`}
         onClick={onNavigate}
         className={cn(
-          "relative size-20 shrink-0 overflow-hidden rounded-lg bg-surface-elevated",
+          "relative size-12 shrink-0 overflow-hidden rounded-lg bg-white/10",
           unavailable && "opacity-50 grayscale",
         )}
         tabIndex={-1}
         aria-hidden
       >
         {item.imageUrl ? (
-          <Image src={item.imageUrl} alt="" fill sizes="80px" className="object-cover" />
+          <Image src={item.imageUrl} alt="" fill sizes="48px" className="object-cover" />
         ) : (
-          <span className="flex h-full items-center justify-center text-muted-foreground">
+          <span className="flex h-full items-center justify-center text-white/60">
             <HiOutlinePhoto className="size-6" />
           </span>
         )}
       </Link>
 
-      <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 py-0.5">
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <Link
               href={`/produtos/${item.slug}`}
               onClick={onNavigate}
               className={cn(
-                "line-clamp-2 text-sm leading-snug font-medium hover:text-gold",
-                unavailable && "text-muted-foreground",
+                "line-clamp-1 text-xs leading-[14px] font-medium hover:underline",
+                unavailable && "text-white/60",
               )}
             >
               {item.name}
             </Link>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="text-[10px] leading-3 text-white/70">
               {unavailable ? (
                 <span className="font-medium text-destructive">Indisponível · não entra no pedido</span>
               ) : (
@@ -263,14 +299,6 @@ function CartLine({
               )}
             </p>
           </div>
-          <button
-            type="button"
-            aria-label={`Remover ${item.name} do carrinho`}
-            onClick={() => setCartItems((current) => removeFromCart(current, item.productId))}
-            className="-mt-0.5 -mr-0.5 flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors outline-none hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <HiOutlineTrash className="size-4" aria-hidden />
-          </button>
         </div>
 
         <div className="flex items-center justify-between gap-2">
@@ -279,19 +307,21 @@ function CartLine({
             label={`Quantidade de ${item.name}`}
             value={item.quantity}
             size="sm"
+            className="border-white/25 [&_button]:text-white [&_button:hover]:bg-white/10 [&_button:hover]:text-white"
             disabled={unavailable}
             onChange={(value) => setCartItems((current) => updateQuantity(current, item.productId, value))}
           />
           <p
             className={cn(
-              "text-sm font-semibold tabular-nums",
-              unavailable && "text-muted-foreground line-through",
+              "text-xs font-semibold tabular-nums",
+              unavailable && "text-white/60 line-through",
             )}
           >
             {formatPrice(subtotal)}
           </p>
         </div>
       </div>
+      </SwipeRow>
     </li>
   )
 }

@@ -5,11 +5,14 @@ import { Suspense } from "react"
 import { FaWhatsapp } from "react-icons/fa6"
 import { HiArrowRight, HiOutlineCubeTransparent, HiOutlineSquares2X2 } from "react-icons/hi2"
 import { HeaderPark } from "@/components/layout/header-park"
+import { PreviewCartProducts } from "@/components/cart/preview-cart-products"
 import { AllProducts } from "@/components/home/all-products"
 import { CategoriesCarousel } from "@/components/home/categories-carousel"
 import { CustomOrderCard } from "@/components/home/custom-order-card"
 import { FeaturedSection, FeaturedSkeleton } from "@/components/home/featured-section"
 import { HeroVideo } from "@/components/home/hero-video"
+import { ChristmasScene } from "@/components/home/christmas-scene"
+import { HeroTechTitle } from "@/components/home/hero-tech-title"
 import { HomeSearchArea, HomeSearchInput, HomeSearchProvider } from "@/components/home/home-search"
 import { ProductGridSkeleton } from "@/components/catalog/skeletons"
 import { JsonLd } from "@/components/shared/json-ld"
@@ -21,6 +24,7 @@ import { getCatalogPage, getShowcaseCategories } from "@/lib/data/catalog"
 import { load } from "@/lib/data/load"
 import { parseCatalogQuery } from "@/lib/validation/schemas"
 import { siteJsonLd } from "@/lib/seo"
+import { isChristmasPreview } from "@/lib/christmas-preview"
 import { getWhatsAppContactUrl } from "@/lib/whatsapp"
 
 export const metadata: Metadata = {
@@ -30,8 +34,9 @@ export const metadata: Metadata = {
 export default function HomePage() {
   const { texts } = siteConfig
   const contactUrl = getWhatsAppContactUrl()
+  const christmas = isChristmasPreview()
 
-  return (
+  const content = (
     <>
       <JsonLd data={siteJsonLd()} />
       <HomeSearchProvider>
@@ -41,15 +46,19 @@ export default function HomePage() {
           className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#09090a] text-white sm:-mt-20"
         >
           <HeaderPark />
-          {/* Fundo: vídeo de oficina sobre a foto (fallback), ambos sob um véu escuro para o texto ler bem. */}
-          <Image src="/hero/oficina-3d.webp" alt="" fill priority sizes="100vw" className="-z-30 object-cover" />
-          <HeroVideo />
+          {/* Cenário natalino somente no Preview do PR; véus preservam a leitura dos textos. */}
+          {christmas ? <ChristmasScene /> : (
+            <>
+              <Image src="/hero/oficina-3d.webp" alt="" fill priority sizes="100vw" className="-z-30 object-cover" />
+              <HeroVideo />
+            </>
+          )}
           <div aria-hidden className="absolute inset-0 -z-10 bg-black/55" />
           <div
             aria-hidden
             className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_45%,transparent_0%,rgb(10_9_7/0.55)_70%)]"
           />
-          <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-linear-to-b from-transparent to-[#09090a]" />
+          <div aria-hidden data-christmas-fade={christmas || undefined} className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-linear-to-b from-transparent to-[#09090a]" />
 
           <div className="page-container flex min-h-[680px] flex-col items-center justify-center px-4 pt-32 pb-28 text-center sm:min-h-[840px] sm:pt-36">
             {/* Selo sem chip: ícone e texto no degradê dourado da marca. */}
@@ -57,8 +66,8 @@ export default function HomePage() {
               <HiOutlineCubeTransparent className="size-5 text-gold-light" aria-hidden />
               <span className="bg-gold-gradient bg-clip-text text-transparent">{texts.tagline}</span>
             </p>
-            <h1 className="mt-6 max-w-3xl text-[2rem] leading-[1.08] font-bold tracking-tight text-balance sm:text-[2.75rem] lg:text-[3.25rem]">
-              <HighlightedTitle text={texts.heroTitle} />
+            <h1 className={`mt-6 max-w-3xl text-[2rem] leading-[1.08] font-bold tracking-tight text-balance sm:text-[2.75rem] lg:text-[3.25rem]${christmas ? " w-full" : ""}`}>
+              {christmas ? <HeroTechTitle /> : <HighlightedTitle text={texts.heroTitle} />}
             </h1>
             <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">{texts.heroDescription}</p>
             <div className="mt-9 w-full">
@@ -102,6 +111,7 @@ export default function HomePage() {
           <CustomOrderCard />
 
           <section className="page-container pt-14 pb-16" aria-labelledby="todos-titulo">
+            <PreviewCartProducts />
             <Suspense
               fallback={
                 <>
@@ -117,6 +127,14 @@ export default function HomePage() {
       </HomeSearchProvider>
     </>
   )
+
+  return christmas ? (
+    <div className="abmc-christmas-home">
+      <ChristmasScene ambient />
+      {content}
+      <div aria-hidden="true" className="abmc-christmas-details">✧ · ✦ · ✧</div>
+    </div>
+  ) : content
 }
 
 async function CategoriesSection() {
