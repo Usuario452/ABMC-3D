@@ -12,17 +12,25 @@ const windows = [
 ]
 
 /** Cenário decorativo adaptado do projeto natalino, sem interferir nos controles da loja. */
-export function ChristmasScene() {
+export function ChristmasScene({ ambient = false }: { ambient?: boolean }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  // Activity mantém rotas ocultas no DOM; seus efeitos desmontam ao sair da home.
+  useEffect(() => {
+    const root = rootRef.current
+    if (!ambient || !root) return
+    root.dataset.christmasActive = "true"
+    return () => { delete root.dataset.christmasActive }
+  }, [ambient])
 
   useEffect(() => {
     const root = rootRef.current
     const stage = stageRef.current
     const canvas = canvasRef.current
     const ctx = canvas?.getContext("2d")
-    if (!root || !stage || !canvas || !ctx) return
+    if (!root || !canvas || !ctx) return
     const motion = matchMedia("(prefers-reduced-motion: reduce)")
     let width = 0, height = 0, frameId = 0, windTime = 0, last = 0
     let visible = true
@@ -30,7 +38,7 @@ export function ChristmasScene() {
       const z = Math.random()
       return {
         x: Math.random() * width, y: anywhere ? Math.random() * height : -10, z,
-        r: 0.8 + z * z * 3.2, v: 14 + z * 46, a: 0.25 + z * 0.6,
+        r: 0.8 + z * z * (ambient ? 1.6 : 3.2), v: (14 + z * 46) * (ambient ? 0.6 : 1), a: 0.25 + z * 0.6,
         ph: Math.random() * Math.PI * 2, sw: 6 + Math.random() * 18, sp: 0.4 + Math.random() * 0.9,
       }
     }
@@ -65,8 +73,8 @@ export function ChristmasScene() {
     }
     function syncMotion() {
       cancelAnimationFrame(frameId)
-      stage!.style.setProperty("--px", "0px")
-      stage!.style.setProperty("--py", "0px")
+      stage?.style.setProperty("--px", "0px")
+      stage?.style.setProperty("--py", "0px")
       draw(0)
       if (!motion.matches && visible && !document.hidden) {
         last = performance.now()
@@ -77,18 +85,18 @@ export function ChristmasScene() {
       const rect = root!.getBoundingClientRect()
       width = rect.width
       height = rect.height
-      const dpr = Math.min(devicePixelRatio || 1, 2)
+      const dpr = Math.min(devicePixelRatio || 1, ambient ? 1.5 : 2)
       canvas!.width = Math.round(width * dpr)
       canvas!.height = Math.round(height * dpr)
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0)
-      flakes = Array.from({ length: Math.round(Math.min(160, Math.max(50, width * height / 14000))) }, () => make(true))
+      flakes = Array.from({ length: Math.round(Math.min(ambient ? 60 : 160, Math.max(ambient ? 25 : 50, width * height / (ambient ? 24000 : 14000)))) }, () => make(true))
       syncMotion()
     }
     function move(event: PointerEvent) {
       if (motion.matches || !visible || event.pointerType === "touch") return
       const rect = root!.getBoundingClientRect()
-      stage!.style.setProperty("--px", `${(event.clientX / rect.width - 0.5) * -14}px`)
-      stage!.style.setProperty("--py", `${((event.clientY - rect.top) / rect.height - 0.5) * -8}px`)
+      stage?.style.setProperty("--px", `${(event.clientX / rect.width - 0.5) * -14}px`)
+      stage?.style.setProperty("--py", `${((event.clientY - rect.top) / rect.height - 0.5) * -8}px`)
     }
     const resizeObserver = new ResizeObserver(resize)
     const intersectionObserver = new IntersectionObserver(([entry]) => {
@@ -100,7 +108,7 @@ export function ChristmasScene() {
     intersectionObserver.observe(root)
     motion.addEventListener("change", syncMotion)
     document.addEventListener("visibilitychange", syncMotion)
-    window.addEventListener("pointermove", move, { passive: true })
+    if (!ambient) window.addEventListener("pointermove", move, { passive: true })
     return () => {
       cancelAnimationFrame(frameId)
       resizeObserver.disconnect()
@@ -109,11 +117,11 @@ export function ChristmasScene() {
       document.removeEventListener("visibilitychange", syncMotion)
       window.removeEventListener("pointermove", move)
     }
-  }, [])
+  }, [ambient])
 
   return (
-    <div ref={rootRef} className="abmc-christmas-scene" aria-hidden="true" data-christmas-scene>
-      <div ref={stageRef} className="abmc-christmas-stage">
+    <div ref={rootRef} className={`abmc-christmas-scene${ambient ? " abmc-christmas-ambient" : ""}`} aria-hidden="true" data-christmas-scene data-christmas-ambient={ambient || undefined} data-christmas-active={ambient || undefined}>
+      {!ambient ? <div ref={stageRef} className="abmc-christmas-stage">
         <div className="abmc-christmas-breathe">
           <Image src="/hero/casa-natal.webp" alt="" width={1254} height={1254} preload unoptimized className="abmc-christmas-image" />
           {windows.map(([x, y, size, duration, delay], index) => (
@@ -126,9 +134,9 @@ export function ChristmasScene() {
             </div>
           ))}
         </div>
-      </div>
+      </div> : null}
       <canvas ref={canvasRef} className="abmc-christmas-snow" />
-      <div className="abmc-christmas-vignette" />
+      {!ambient ? <div className="abmc-christmas-vignette" /> : null}
     </div>
   )
 }

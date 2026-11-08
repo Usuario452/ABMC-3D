@@ -35,7 +35,7 @@ export default function HomePage() {
   const contactUrl = getWhatsAppContactUrl()
   const christmas = isChristmasPreview()
 
-  return (
+  const content = (
     <>
       <JsonLd data={siteJsonLd()} />
       <HomeSearchProvider>
@@ -57,7 +57,7 @@ export default function HomePage() {
             aria-hidden
             className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_45%,transparent_0%,rgb(10_9_7/0.55)_70%)]"
           />
-          <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-linear-to-b from-transparent to-[#09090a]" />
+          <div aria-hidden data-christmas-fade={christmas || undefined} className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-linear-to-b from-transparent to-[#09090a]" />
 
           <div className="page-container flex min-h-[680px] flex-col items-center justify-center px-4 pt-32 pb-28 text-center sm:min-h-[840px] sm:pt-36">
             {/* Selo sem chip: ícone e texto no degradê dourado da marca. */}
@@ -126,6 +126,14 @@ export default function HomePage() {
       </HomeSearchProvider>
     </>
   )
+
+  return christmas ? (
+    <div className="abmc-christmas-home">
+      <ChristmasScene ambient />
+      {content}
+      <div aria-hidden="true" className="abmc-christmas-details">✧ · ✦ · ✧</div>
+    </div>
+  ) : content
 }
 
 async function CategoriesSection() {

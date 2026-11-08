@@ -98,6 +98,92 @@
 .abmc-christmas-scene[data-paused="true"] .abmc-christmas-star,
 .abmc-christmas-scene[data-paused="true"] .abmc-christmas-smoke i { animation-play-state: paused; }
 
+/* O marcador só existe na home do Preview do PR #5; não afeta outras rotas ou portais. */
+body:has(.abmc-christmas-home [data-christmas-active]) {
+  background-color: #083d46;
+}
+
+.abmc-christmas-home,
+body:has(.abmc-christmas-home [data-christmas-active]) > footer {
+  --background: #083d46;
+  --foreground: #fff8ee;
+  --card: #0a3b43;
+  --card-foreground: #fff8ee;
+  --brand-surface: #0a3b43;
+  --brand-surface-elevated: #0b4852;
+  --brand-foreground: #fff8ee;
+  --muted: #0b4852;
+  --muted-foreground: #c8ddda;
+  --secondary: #0b4852;
+  --secondary-foreground: #fff8ee;
+  --border: #39717a;
+  --input: #39717a;
+  --accent: #125561;
+  --accent-foreground: #fff8ee;
+  --destructive: #ff9999;
+  --success: #8fdaa9;
+  --ring: #e6cf9c;
+  --gold: #f2d6a2;
+  --gold-gradient-text: linear-gradient(135deg, #fff2d5, #e6cf9c);
+  color: var(--foreground);
+}
+
+.abmc-christmas-home {
+  background: radial-gradient(ellipse at 8% 60%, rgb(230 207 156 / .06), transparent 32%),
+    radial-gradient(ellipse at 90% 90%, rgb(183 218 208 / .05), transparent 28%), #083d46;
+}
+
+.abmc-christmas-home [data-header-park] {
+  background-color: #083d46;
+}
+
+.abmc-christmas-home [data-christmas-fade] {
+  background-image: linear-gradient(to bottom, transparent, #083d46);
+}
+
+.abmc-christmas-home section[aria-labelledby="personalizados-titulo"] > div {
+  background: linear-gradient(110deg, #072e36 45%, #0d535b);
+  border: 1px solid rgb(230 207 156 / .24);
+}
+
+.abmc-christmas-home article {
+  border: 1px solid rgb(190 225 216 / .2);
+}
+
+.abmc-christmas-details {
+  padding-block: 1rem;
+  color: #e6cf9c;
+  opacity: .6;
+  text-align: center;
+  letter-spacing: .7em;
+  pointer-events: none;
+}
+
+body:has(.abmc-christmas-home [data-christmas-active]) > footer {
+  background: radial-gradient(ellipse at 75% 100%, rgb(230 207 156 / .06), transparent 55%);
+}
+
+body:has(.abmc-christmas-home [data-christmas-active]) > footer p,
+body:has(.abmc-christmas-home [data-christmas-active]) > footer nav a,
+body:has(.abmc-christmas-home [data-christmas-active]) > footer a[target="_blank"] {
+  color: #c8ddda;
+}
+
+body:has(.abmc-christmas-home [data-christmas-active]) > footer h2,
+body:has(.abmc-christmas-home [data-christmas-active]) > footer a:hover,
+body:has(.abmc-christmas-home [data-christmas-active]) > footer a:focus-visible {
+  color: #fff8ee;
+}
+
+/* Canvas limitado à tela, independentemente da altura do catálogo. */
+.abmc-christmas-ambient {
+  position: fixed;
+  z-index: 1;
+  background: none;
+  opacity: .32;
+  container-type: normal;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .abmc-christmas-breathe, .abmc-christmas-glow, .abmc-christmas-star, .abmc-christmas-smoke i { animation: none; }
   .abmc-christmas-glow, .abmc-christmas-star { opacity: .5; }
