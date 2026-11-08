@@ -12,6 +12,7 @@ import { CustomOrderCard } from "@/components/home/custom-order-card"
 import { FeaturedSection, FeaturedSkeleton } from "@/components/home/featured-section"
 import { HeroVideo } from "@/components/home/hero-video"
 import { ChristmasScene } from "@/components/home/christmas-scene"
+import { HeroTechTitle } from "@/components/home/hero-tech-title"
 import { HomeSearchArea, HomeSearchInput, HomeSearchProvider } from "@/components/home/home-search"
 import { ProductGridSkeleton } from "@/components/catalog/skeletons"
 import { JsonLd } from "@/components/shared/json-ld"
@@ -65,8 +66,8 @@ export default function HomePage() {
               <HiOutlineCubeTransparent className="size-5 text-gold-light" aria-hidden />
               <span className="bg-gold-gradient bg-clip-text text-transparent">{texts.tagline}</span>
             </p>
-            <h1 className="mt-6 max-w-3xl text-[2rem] leading-[1.08] font-bold tracking-tight text-balance sm:text-[2.75rem] lg:text-[3.25rem]">
-              <HighlightedTitle text={texts.heroTitle} />
+            <h1 className={`mt-6 max-w-3xl text-[2rem] leading-[1.08] font-bold tracking-tight text-balance sm:text-[2.75rem] lg:text-[3.25rem]${christmas ? " w-full" : ""}`}>
+              {christmas ? <HeroTechTitle /> : <HighlightedTitle text={texts.heroTitle} />}
             </h1>
             <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">{texts.heroDescription}</p>
             <div className="mt-9 w-full">
