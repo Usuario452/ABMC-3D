@@ -11,6 +11,7 @@ import { CategoriesCarousel } from "@/components/home/categories-carousel"
 import { CustomOrderCard } from "@/components/home/custom-order-card"
 import { FeaturedSection, FeaturedSkeleton } from "@/components/home/featured-section"
 import { HeroVideo } from "@/components/home/hero-video"
+import { ChristmasScene } from "@/components/home/christmas-scene"
 import { HomeSearchArea, HomeSearchInput, HomeSearchProvider } from "@/components/home/home-search"
 import { ProductGridSkeleton } from "@/components/catalog/skeletons"
 import { JsonLd } from "@/components/shared/json-ld"
@@ -22,6 +23,7 @@ import { getCatalogPage, getShowcaseCategories } from "@/lib/data/catalog"
 import { load } from "@/lib/data/load"
 import { parseCatalogQuery } from "@/lib/validation/schemas"
 import { siteJsonLd } from "@/lib/seo"
+import { isChristmasPreview } from "@/lib/christmas-preview"
 import { getWhatsAppContactUrl } from "@/lib/whatsapp"
 
 export const metadata: Metadata = {
@@ -31,6 +33,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   const { texts } = siteConfig
   const contactUrl = getWhatsAppContactUrl()
+  const christmas = isChristmasPreview()
 
   return (
     <>
@@ -42,9 +45,13 @@ export default function HomePage() {
           className="relative isolate -mt-[4.25rem] overflow-hidden bg-[#09090a] text-white sm:-mt-20"
         >
           <HeaderPark />
-          {/* Fundo: vídeo de oficina sobre a foto (fallback), ambos sob um véu escuro para o texto ler bem. */}
-          <Image src="/hero/oficina-3d.webp" alt="" fill priority sizes="100vw" className="-z-30 object-cover" />
-          <HeroVideo />
+          {/* Cenário natalino somente no Preview do PR; véus preservam a leitura dos textos. */}
+          {christmas ? <ChristmasScene /> : (
+            <>
+              <Image src="/hero/oficina-3d.webp" alt="" fill priority sizes="100vw" className="-z-30 object-cover" />
+              <HeroVideo />
+            </>
+          )}
           <div aria-hidden className="absolute inset-0 -z-10 bg-black/55" />
           <div
             aria-hidden
